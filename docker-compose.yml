@@ -1,0 +1,87 @@
+
+services:
+
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:14}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-devopsdb}
+      POSTGRES_USER: ${POSTGRES_USER:-devops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devops}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 5
+
+  rabbitmq:
+    image: ${RABBITMQ_IMAGE:-rabbitmq:3.12-management}
+    environment:
+      HOME: ${RABBITMQ_HOME:-/tmp/rabbitmq}
+      RABBITMQ_DATA_DIR: ${RABBITMQ_DATA_DIR:-/tmp/rabbitmq}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-devops-rabbit-cookie}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-devops}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-devops}
+    ports:
+      - "${RABBITMQ_UI_PORT:-15672}:15672"
+      - "${RABBITMQ_PORT:-5672}:5672"
+    tmpfs:
+      - ${RABBITMQ_DATA_DIR:-/tmp/rabbitmq}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      retries: 12
+      start_period: 15s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      POSTGRES_DB: ${POSTGRES_DB:-devopsdb}
+      POSTGRES_USER: ${POSTGRES_USER:-devops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devops}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    environment:
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+  nginx:
+    image: ${NGINX_IMAGE:-nginx:alpine}
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  db_data:

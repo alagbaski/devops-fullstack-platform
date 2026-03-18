@@ -1,0 +1,92 @@
+# ======================
+# GENERAL
+# ======================
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+
+# ======================
+# ENV / SECRETS
+# ======================
+.env
+.env.*
+*.env
+!.env.example
+
+# ======================
+# PYTHON
+# ======================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# ======================
+# NODE / REACT
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+build/
+dist/
+coverage/
+
+# ======================
+# DOCKER
+# ======================
+*.tar
+
+# ======================
+# IDE / EDITORS
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# TEST / COVERAGE
+# ======================
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ======================
+# DATABASE / LOCAL DATA
+# ======================
+postgres_data/
+*.db
+
+# ======================
+# TERRAFORM / INFRA
+# ======================
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+
+# ======================
+# MISC
+# ======================
+*.bak
+*.tmp

@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Compose file
+        run: docker compose config
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Start application stack
+        run: docker compose up -d
+
+      - name: Wait for services to settle
+        run: sleep 20
+
+      - name: Verify running services
+        run: docker compose ps
+
+      - name: Smoke test backend
+        run: curl --fail http://localhost:8000/items
+
+      - name: Smoke test frontend through nginx
+        run: curl --fail http://localhost/
+
+      - name: Smoke test API through nginx
+        run: curl --fail http://localhost/api/items
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v
