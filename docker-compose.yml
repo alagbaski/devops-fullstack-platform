@@ -13,6 +13,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       retries: 5
+    networks:
+      - platform
 
   rabbitmq:
     image: ${RABBITMQ_IMAGE:-rabbitmq:3.12-management}
@@ -32,6 +34,8 @@ services:
       interval: 5s
       retries: 12
       start_period: 15s
+    networks:
+      - platform
 
   backend:
     build:
@@ -50,6 +54,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-devops}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devops}
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
+    networks:
+      - platform
 
   worker:
     build:
@@ -62,6 +68,8 @@ services:
         condition: service_started
     environment:
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
+    networks:
+      - platform
 
   frontend:
     build: ./frontend
@@ -72,6 +80,8 @@ services:
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - platform
 
   nginx:
     image: ${NGINX_IMAGE:-nginx:alpine}
@@ -82,6 +92,51 @@ services:
     depends_on:
       - backend
       - frontend
+    networks:
+      - platform
+  
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - platform
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - platform
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - platform
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true
+    networks:
+      - platform
 
 volumes:
   db_data:
+
+networks:
+  platform:
+    name: devops-fullstack-platform_network

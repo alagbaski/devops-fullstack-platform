@@ -1,11 +1,13 @@
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel
 import psycopg2
 import os
 import time
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 DB_HOST = os.getenv("DB_HOST","db")
 DB_NAME = os.getenv("POSTGRES_DB","devopsdb")

@@ -27,7 +27,17 @@ Useful local URLs:
 - `http://localhost` for the app through nginx
 - `http://localhost:3000` for the React dev server
 - `http://localhost:8000/items` for the backend API
+- `http://localhost:8000/metrics` for backend Prometheus metrics
 - `http://localhost:15672` for the RabbitMQ management UI
+- `http://localhost:9090` for Prometheus
+- `http://localhost:3001` for Grafana
+- `http://localhost:8080` for cAdvisor container metrics
+
+Grafana is provisioned from the repo:
+
+- datasource: `Prometheus`
+- dashboard folder: `Observability`
+- default repo-managed dashboard: `Platform Overview`
 
 Inspect the stack:
 
