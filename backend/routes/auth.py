@@ -30,5 +30,5 @@ def login(payload: LoginRequest):
 
 
 @router.get("/me", response_model=UserResponse)
-def me(current_user=Depends(get_current_user)):
-    return UserResponse(**current_user)
+def read_current_user(current_user=Depends(get_current_user)):
+    return current_user

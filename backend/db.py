@@ -85,6 +85,22 @@ def initialize_database() -> None:
                 ON products (slug);
                 """
             )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feedback (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    message TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                );
+                """
+            )
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_feedback_user_id
+                ON feedback (user_id);
+                """
+            )
             if ADMIN_EMAIL and ADMIN_PASSWORD:
                 cur.execute("SELECT id FROM users WHERE email = %s;", (ADMIN_EMAIL.lower(),))
                 if cur.fetchone() is None:

@@ -3,6 +3,7 @@ from contextlib import closing
 import psycopg2
 
 from db import get_conn
+from models.product import Product
 from schemas.products import ProductCreate, ProductUpdate
 
 
@@ -21,6 +22,26 @@ def list_active_products() -> list[dict]:
             rows = cur.fetchall()
 
     return [_row_to_product(row) for row in rows]
+
+
+def get_product(product_id: int) -> dict | None:
+    with closing(get_conn()) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, name, slug, description, price, currency, inventory_count,
+                       image_url, is_active, created_at, updated_at
+                FROM products
+                WHERE id = %s;
+                """,
+                (product_id,),
+            )
+            row = cur.fetchone()
+
+    if row is None:
+        return None
+
+    return _row_to_product(row)
 
 
 def list_products_for_admin() -> list[dict]:
@@ -80,9 +101,9 @@ def update_product(product_id: int, payload: ProductUpdate) -> dict:
     normalized_values = {}
     for key, value in update_values.items():
         if isinstance(value, str):
-          normalized_values[key] = value.strip()
+            normalized_values[key] = value.strip()
         else:
-          normalized_values[key] = value
+            normalized_values[key] = value
 
     if "currency" in normalized_values:
         normalized_values["currency"] = normalized_values["currency"].upper()
@@ -112,6 +133,17 @@ def update_product(product_id: int, payload: ProductUpdate) -> dict:
     return _row_to_product(row)
 
 
+def delete_product(product_id: int) -> None:
+    with closing(get_conn()) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM products WHERE id = %s;", (product_id,))
+            if cur.fetchone() is None:
+                raise ValueError("Product not found")
+
+            cur.execute("DELETE FROM products WHERE id = %s;", (product_id,))
+        conn.commit()
+
+
 def get_product_counts() -> dict:
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
@@ -134,16 +166,4 @@ def get_product_counts() -> dict:
 
 
 def _row_to_product(row) -> dict:
-    return {
-        "id": row[0],
-        "name": row[1],
-        "slug": row[2],
-        "description": row[3],
-        "price": row[4],
-        "currency": row[5],
-        "inventory_count": row[6],
-        "image_url": row[7],
-        "is_active": row[8],
-        "created_at": row[9],
-        "updated_at": row[10],
-    }
+    return Product.from_db_row(row).to_response()

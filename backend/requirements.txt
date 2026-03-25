@@ -2,4 +2,5 @@ fastapi
 uvicorn
 psycopg2-binary
 prometheus-fastapi-instrumentator
-PyJWT
+passlib
+python-jose

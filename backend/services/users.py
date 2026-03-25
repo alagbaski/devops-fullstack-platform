@@ -1,6 +1,7 @@
 from contextlib import closing
 
 from db import get_conn
+from models.user import User
 from security.passwords import hash_password, verify_password
 
 
@@ -26,7 +27,7 @@ def create_user(email: str, password: str, role: str = "customer") -> dict:
             row = cur.fetchone()
         conn.commit()
 
-    return _row_to_user(row)
+    return User.from_public_row(row).to_response()
 
 
 def get_user_by_email(email: str):
@@ -64,20 +65,13 @@ def authenticate_user(email: str, password: str):
     if not verify_password(password, user["password_hash"]):
         return None
 
-    return {
-        "id": user["id"],
-        "email": user["email"],
-        "role": user["role"],
-        "created_at": user["created_at"],
-        "updated_at": user["updated_at"],
-    }
-
-
-def _row_to_user(row) -> dict:
-    return {
-        "id": row[0],
-        "email": row[1],
-        "role": row[2],
-        "created_at": row[3],
-        "updated_at": row[4],
-    }
+    return User.from_db_row(
+        (
+            user["id"],
+            user["email"],
+            user["password_hash"],
+            user["role"],
+            user["created_at"],
+            user["updated_at"],
+        )
+    ).to_response()
