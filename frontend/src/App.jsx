@@ -18,10 +18,13 @@ const localServices = [
 
 export default function App() {
   const [items, setItems] = useState([]);
+  const [products, setProducts] = useState([]);
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [productError, setProductError] = useState("");
 
   const itemSummary = useMemo(() => {
     if (items.length === 0) return "No items stored yet";
@@ -41,6 +44,24 @@ export default function App() {
       setItems(Array.isArray(data) ? data : []);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchProducts() {
+    setIsProductsLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/v1/products`);
+      if (!response.ok) {
+        throw new Error("Failed to load products.");
+      }
+
+      const data = await response.json();
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setProductError(err.message || "Failed to load products.");
+    } finally {
+      setIsProductsLoading(false);
     }
   }
 
@@ -80,6 +101,9 @@ export default function App() {
     fetchItems().catch((err) => {
       setError(err.message || "Failed to load items.");
     });
+    fetchProducts().catch((err) => {
+      setProductError(err.message || "Failed to load products.");
+    });
   }, []);
 
   return (
@@ -87,11 +111,11 @@ export default function App() {
       <section className="hero-card panel">
         <div className="hero-copy">
           <p className="eyebrow">DevOps Fullstack Platform</p>
-          <h1>Operate the local stack from one calm control room.</h1>
+          <h1>Run a storefront-ready platform from one calm control room.</h1>
           <p className="intro">
-            Add items through the React interface, route requests through nginx,
-            and keep the broader platform in view with links for metrics,
-            health, queues, and dashboards that match your local setup.
+            Browse the first product catalog slice through nginx, keep the legacy
+            smoke-test item flow available, and monitor the broader platform with
+            links for metrics, health, queues, and dashboards.
           </p>
 
           <div className="quick-links" aria-label="Platform shortcuts">
@@ -113,10 +137,62 @@ export default function App() {
           </p>
 
           <div className="status-note">
-            <strong>Frontend contract</strong>
-            <p>This page keeps using GET /api/items and POST /api/items for local smoke testing.</p>
+            <strong>Phase status</strong>
+            <p>Product listing now uses GET /api/v1/products while the legacy item flow stays available for smoke testing.</p>
           </div>
         </div>
+      </section>
+
+      <section className="panel panel-products">
+        <div className="panel-header panel-header-split">
+          <div>
+            <p className="section-label">Storefront</p>
+            <h2>Product listing</h2>
+          </div>
+          <div className="panel-actions">
+            <p>{isProductsLoading ? "Refreshing catalog..." : `${products.length} active products`}</p>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => fetchProducts().catch((err) => setProductError(err.message || "Failed to load products."))}
+              disabled={isProductsLoading}
+            >
+              {isProductsLoading ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+        </div>
+
+        {productError ? (
+          <p className="error-message" role="alert">
+            {productError}
+          </p>
+        ) : null}
+
+        {isProductsLoading ? (
+          <div className="empty-state">
+            <p>Loading active products from the catalog API...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="empty-state">
+            <p>No products published yet.</p>
+            <small>Create products through the admin-ready API once an admin user is seeded.</small>
+          </div>
+        ) : (
+          <div className="product-grid">
+            {products.map((product) => (
+              <article key={product.id} className="product-card">
+                <div className="product-card-header">
+                  <p className="product-price">
+                    {product.currency} {Number(product.price).toFixed(2)}
+                  </p>
+                  <span className="status-chip product-chip">{product.inventory_count} in stock</span>
+                </div>
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="workspace-grid">
