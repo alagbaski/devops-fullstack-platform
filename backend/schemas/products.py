@@ -29,3 +29,13 @@ class ProductResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+
+class ProductUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    description: str | None = Field(default=None, min_length=8, max_length=1200)
+    price: Decimal | None = Field(default=None, ge=0)
+    currency: str | None = Field(default=None, min_length=3, max_length=3)
+    inventory_count: int | None = Field(default=None, ge=0)
+    image_url: str | None = Field(default=None, max_length=500)
+    is_active: bool | None = None
