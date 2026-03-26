@@ -22,20 +22,30 @@ jobs:
       - name: Start application stack
         run: docker compose up -d
 
-      - name: Wait for services to settle
-        run: sleep 20
+      - name: Wait for core services
+        run: |
+          for i in {1..60}; do
+            if curl --fail --silent http://localhost:8000/health >/dev/null && curl --fail --silent http://localhost/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Services did not become ready in time"
+          docker compose ps
+          exit 1
 
       - name: Verify running services
         run: docker compose ps
 
-      - name: Smoke test backend
-        run: curl --fail http://localhost:8000/items
+      - name: Build frontend production bundle
+        run: docker compose exec -T frontend npm run build
 
-      - name: Smoke test frontend through nginx
-        run: curl --fail http://localhost/
-
-      - name: Smoke test API through nginx
-        run: curl --fail http://localhost/api/items
+      - name: Run application smoke test
+        env:
+          BASE_URL: http://localhost:8000
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: change-me-too
+        run: ./scripts/smoke-phase1.sh
 
       - name: Show logs on failure
         if: failure()
