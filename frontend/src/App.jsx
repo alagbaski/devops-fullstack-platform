@@ -68,6 +68,11 @@ function hasRole(token, expectedRole) {
   return payload?.role === expectedRole;
 }
 
+function getTokenEmail(token) {
+  const payload = decodeTokenPayload(token);
+  return payload?.sub || "";
+}
+
 function GithubMark() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="social-icon">
@@ -264,6 +269,9 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
             <Link className="secondary-button button-link" to="/">
               Account
             </Link>
+            <Link className="secondary-button button-link" to="/support">
+              Support
+            </Link>
             <Link className="secondary-button button-link" to="/admin">
               Admin
             </Link>
@@ -412,6 +420,124 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
   );
 }
 
+function SupportPage({
+  feedbackText,
+  feedbackError,
+  feedbackSuccess,
+  isFeedbackSubmitting,
+  contactForm,
+  contactError,
+  contactSuccess,
+  isContactSubmitting,
+  onFeedbackChange,
+  onSubmitFeedback,
+  onContactFieldChange,
+  onSubmitContact,
+  onLogout,
+}) {
+  return (
+    <main className="app-shell">
+      <AppHeader
+        title="Reach the team without leaving the store."
+        description="Send a message to the admin or dev team when you need help with the storefront, account access, or product issues."
+        actions={
+          <>
+            <Link className="secondary-button button-link" to="/shop">
+              Shop
+            </Link>
+            <button type="button" className="secondary-button" onClick={onLogout}>
+              Log out
+            </button>
+          </>
+        }
+      />
+
+      <section className="workspace-grid">
+        <section className="panel panel-home">
+          <div className="panel-header">
+            <div>
+              <p className="section-label">Support</p>
+              <h2>Send feedback</h2>
+            </div>
+            <p>Messages go straight into the protected admin inbox.</p>
+          </div>
+
+          {feedbackError ? (
+            <p className="error-message" role="alert">
+              {feedbackError}
+            </p>
+          ) : null}
+
+          {feedbackSuccess ? <p className="success-message">{feedbackSuccess}</p> : null}
+
+          <form className="admin-product-form" onSubmit={onSubmitFeedback}>
+            <textarea
+              rows="8"
+              placeholder="Tell us what you need help with."
+              value={feedbackText}
+              onChange={(event) => onFeedbackChange(event.target.value)}
+            />
+            <button type="submit" disabled={isFeedbackSubmitting}>
+              {isFeedbackSubmitting ? "Sending..." : "Send message"}
+            </button>
+          </form>
+        </section>
+
+        <section className="panel panel-home">
+          <div className="panel-header">
+            <div>
+              <p className="section-label">Contact</p>
+              <h2>Email support</h2>
+            </div>
+            <p>Queue an email for the support team when you need a direct follow-up.</p>
+          </div>
+
+          {contactError ? (
+            <p className="error-message" role="alert">
+              {contactError}
+            </p>
+          ) : null}
+
+          {contactSuccess ? <p className="success-message">{contactSuccess}</p> : null}
+
+          <form className="admin-product-form" onSubmit={onSubmitContact}>
+            <input
+              type="email"
+              placeholder="Your email"
+              value={contactForm.email}
+              onChange={(event) => onContactFieldChange("email", event.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Subject"
+              value={contactForm.subject}
+              onChange={(event) => onContactFieldChange("subject", event.target.value)}
+            />
+            <textarea
+              rows="6"
+              placeholder="How can we help?"
+              value={contactForm.message}
+              onChange={(event) => onContactFieldChange("message", event.target.value)}
+            />
+            <button type="submit" disabled={isContactSubmitting}>
+              {isContactSubmitting ? "Queueing..." : "Email support"}
+            </button>
+          </form>
+
+          <ul className="service-list">
+            <li>
+              <a href={supportEmail}>
+                <strong>Support inbox</strong>
+                <small>{supportEmail.replace("mailto:", "")}</small>
+              </a>
+            </li>
+          </ul>
+        </section>
+      </section>
+    </main>
+  );
+}
+
 function AdminLoginPage({ adminEmail, adminPassword, adminError, adminMessage, isAdminSubmitting, setAdminEmail, setAdminPassword, onSubmit, hasAdminSession, onClearSession }) {
   return (
     <main className="min-h-screen bg-auth-gradient px-5 py-10 text-ink sm:px-6 lg:px-8">
@@ -480,6 +606,7 @@ function AdminLoginPage({ adminEmail, adminPassword, adminError, adminMessage, i
 function AdminDashboardPage({
   adminOverview,
   adminProducts,
+  adminFeedback,
   adminForm,
   adminError,
   adminMessage,
@@ -488,6 +615,7 @@ function AdminDashboardPage({
   onFieldChange,
   onCreateProduct,
   onToggleProductStatus,
+  onDeleteProduct,
   onLogout,
 }) {
   return (
@@ -681,6 +809,43 @@ function AdminDashboardPage({
                   >
                     {product.is_active ? "Hide" : "Publish"}
                   </button>
+
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => onDeleteProduct(product)}
+                    disabled={isAdminSubmitting}
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="admin-card admin-products-card">
+          <div className="panel-header">
+            <div>
+              <p className="section-label">Support Inbox</p>
+              <h2>User feedback</h2>
+            </div>
+            <p>Latest customer messages sent from the storefront support page.</p>
+          </div>
+
+          {adminFeedback.length === 0 ? (
+            <div className="empty-state">
+              <p>No feedback messages yet.</p>
+            </div>
+          ) : (
+            <ul className="admin-product-list">
+              {adminFeedback.map((entry) => (
+                <li key={entry.id} className="xl:grid-cols-[minmax(0,1fr)_auto]">
+                  <div>
+                    <strong>User #{entry.user_id}</strong>
+                    <p>{entry.message}</p>
+                  </div>
+                  <span className="section-label">{new Date(entry.created_at).toLocaleString()}</span>
                 </li>
               ))}
             </ul>
@@ -704,11 +869,24 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState("change-me-too");
   const [adminOverview, setAdminOverview] = useState(null);
   const [adminProducts, setAdminProducts] = useState([]);
+  const [adminFeedback, setAdminFeedback] = useState([]);
   const [adminForm, setAdminForm] = useState(initialAdminForm);
   const [adminError, setAdminError] = useState("");
   const [adminMessage, setAdminMessage] = useState("");
   const [isAdminLoading, setIsAdminLoading] = useState(false);
   const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [feedbackSuccess, setFeedbackSuccess] = useState("");
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
+  const [contactForm, setContactForm] = useState(() => ({
+    email: getTokenEmail(readToken(AUTH_TOKEN_STORAGE_KEY)),
+    subject: "",
+    message: "",
+  }));
+  const [contactError, setContactError] = useState("");
+  const [contactSuccess, setContactSuccess] = useState("");
+  const [isContactSubmitting, setIsContactSubmitting] = useState(false);
 
   const cartCount = useMemo(
     () => cart.reduce((total, item) => total + item.quantity, 0),
@@ -803,31 +981,35 @@ export default function App() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [overviewResponse, productsResponse] = await Promise.all([
+      const [overviewResponse, productsResponse, feedbackResponse] = await Promise.all([
         fetch(`${API_URL}/v1/admin/overview`, { headers }),
         fetch(`${API_URL}/v1/products/admin`, { headers }),
+        fetch(`${API_URL}/v1/feedback`, { headers }),
       ]);
 
-      if ([overviewResponse, productsResponse].some((response) => response.status === 401 || response.status === 403)) {
+      if ([overviewResponse, productsResponse, feedbackResponse].some((response) => response.status === 401 || response.status === 403)) {
         throw new Error("Admin session expired or does not have access.");
       }
 
-      if (!overviewResponse.ok || !productsResponse.ok) {
+      if (!overviewResponse.ok || !productsResponse.ok || !feedbackResponse.ok) {
         throw new Error("Failed to load admin dashboard.");
       }
 
-      const [overviewData, productsData] = await Promise.all([
+      const [overviewData, productsData, feedbackData] = await Promise.all([
         overviewResponse.json(),
         productsResponse.json(),
+        feedbackResponse.json(),
       ]);
 
       setAdminOverview(overviewData);
       setAdminProducts(Array.isArray(productsData) ? productsData : []);
+      setAdminFeedback(Array.isArray(feedbackData) ? feedbackData : []);
     } catch (err) {
       setAdminError(err.message || "Failed to load admin dashboard.");
       setAdminToken("");
       setAdminOverview(null);
       setAdminProducts([]);
+      setAdminFeedback([]);
       navigate("/admin", { replace: true });
     } finally {
       setIsAdminLoading(false);
@@ -870,9 +1052,92 @@ export default function App() {
     setAdminToken("");
     setAdminOverview(null);
     setAdminProducts([]);
+    setAdminFeedback([]);
     setAdminMessage("Admin session cleared.");
     setAdminError("");
     navigate("/admin", { replace: true });
+  }
+
+  async function handleSubmitFeedback(event) {
+    event.preventDefault();
+    setIsFeedbackSubmitting(true);
+    setFeedbackError("");
+    setFeedbackSuccess("");
+
+    try {
+      const trimmedMessage = feedbackText.trim();
+      if (!trimmedMessage) {
+        throw new Error("Please enter a message before sending.");
+      }
+
+      const response = await fetch(`${API_URL}/v1/feedback`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: trimmedMessage }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to send feedback.");
+      }
+
+      setFeedbackText("");
+      setFeedbackSuccess("Your message has been sent to the team.");
+
+      if (hasAdminSession) {
+        await fetchAdminData();
+      }
+    } catch (err) {
+      setFeedbackError(err.message || "Failed to send feedback.");
+    } finally {
+      setIsFeedbackSubmitting(false);
+    }
+  }
+
+  async function handleSubmitContact(event) {
+    event.preventDefault();
+    setIsContactSubmitting(true);
+    setContactError("");
+    setContactSuccess("");
+
+    try {
+      const payload = {
+        email: contactForm.email.trim().toLowerCase(),
+        subject: contactForm.subject.trim(),
+        message: contactForm.message.trim(),
+      };
+
+      if (!payload.email || !payload.subject || !payload.message) {
+        throw new Error("Please complete the email, subject, and message fields.");
+      }
+
+      const response = await fetch(`${API_URL}/v1/support/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to queue support email.");
+      }
+
+      setContactForm((current) => ({
+        ...current,
+        subject: "",
+        message: "",
+      }));
+      setContactSuccess("Support email queued successfully.");
+    } catch (err) {
+      setContactError(err.message || "Failed to queue support email.");
+    } finally {
+      setIsContactSubmitting(false);
+    }
   }
 
   async function handleCreateProduct(event) {
@@ -939,6 +1204,33 @@ export default function App() {
     }
   }
 
+  async function handleDeleteProduct(product) {
+    setIsAdminSubmitting(true);
+    setAdminError("");
+    setAdminMessage("");
+
+    try {
+      const response = await fetch(`${API_URL}/v1/products/${product.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to delete product.");
+      }
+
+      setAdminMessage("Product deleted.");
+      await Promise.all([fetchProducts(), fetchAdminData()]);
+    } catch (err) {
+      setAdminError(err.message || "Failed to delete product.");
+    } finally {
+      setIsAdminSubmitting(false);
+    }
+  }
+
   useEffect(() => {
     fetchProducts().catch((err) => {
       setProductError(err.message || "Failed to load products.");
@@ -959,6 +1251,14 @@ export default function App() {
         window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
       }
     }
+  }, [userToken]);
+
+  useEffect(() => {
+    const tokenEmail = getTokenEmail(userToken);
+    setContactForm((current) => ({
+      ...current,
+      email: tokenEmail || current.email,
+    }));
   }, [userToken]);
 
   useEffect(() => {
@@ -1048,6 +1348,30 @@ export default function App() {
         }
       />
       <Route
+        path="/support"
+        element={
+          <ProtectedRoute isAllowed={hasUserSession} redirectTo="/">
+            <SupportPage
+              feedbackText={feedbackText}
+              feedbackError={feedbackError}
+              feedbackSuccess={feedbackSuccess}
+              isFeedbackSubmitting={isFeedbackSubmitting}
+              contactForm={contactForm}
+              contactError={contactError}
+              contactSuccess={contactSuccess}
+              isContactSubmitting={isContactSubmitting}
+              onFeedbackChange={(value) => setFeedbackText(value)}
+              onSubmitFeedback={handleSubmitFeedback}
+              onContactFieldChange={(field, value) =>
+                setContactForm((current) => ({ ...current, [field]: value }))
+              }
+              onSubmitContact={handleSubmitContact}
+              onLogout={handleUserLogout}
+            />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin"
         element={
           <AdminLoginPage
@@ -1071,6 +1395,7 @@ export default function App() {
             <AdminDashboardPage
               adminOverview={adminOverview}
               adminProducts={adminProducts}
+              adminFeedback={adminFeedback}
               adminForm={adminForm}
               adminError={adminError}
               adminMessage={adminMessage}
@@ -1079,6 +1404,7 @@ export default function App() {
               onFieldChange={(field, value) => setAdminForm((current) => ({ ...current, [field]: value }))}
               onCreateProduct={handleCreateProduct}
               onToggleProductStatus={toggleProductStatus}
+              onDeleteProduct={handleDeleteProduct}
               onLogout={handleAdminLogout}
             />
           </ProtectedRoute>

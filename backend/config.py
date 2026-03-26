@@ -15,3 +15,11 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 NGINX_PORT = os.getenv("NGINX_PORT", "80")
 BACKEND_PORT = os.getenv("BACKEND_PORT", "8000")
 RABBITMQ_UI_PORT = os.getenv("RABBITMQ_UI_PORT", "15672")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://devops:devops@rabbitmq:5672//")
+
+SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@example.com")
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() == "true"

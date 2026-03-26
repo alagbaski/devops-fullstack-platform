@@ -4,3 +4,5 @@ psycopg2-binary
 prometheus-fastapi-instrumentator
 passlib
 python-jose
+celery
+email-validator

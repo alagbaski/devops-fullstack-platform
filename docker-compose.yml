@@ -59,6 +59,7 @@ services:
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-too}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@example.com}
     networks:
       - platform
 
@@ -73,6 +74,12 @@ services:
         condition: service_started
     environment:
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@example.com}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
     networks:
       - platform
 
