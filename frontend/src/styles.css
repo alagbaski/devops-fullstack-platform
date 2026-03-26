@@ -250,7 +250,7 @@
   }
 
   .admin-product-list li {
-    @apply grid items-center gap-3.5 rounded-[1.25rem] border border-slate-200 bg-white p-4 xl:grid-cols-[minmax(0,1fr)_auto_auto];
+    @apply grid items-center gap-3.5 rounded-[1.25rem] border border-slate-200 bg-white p-4 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto];
   }
 
   .admin-badge {

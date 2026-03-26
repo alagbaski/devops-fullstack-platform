@@ -12,6 +12,11 @@ def get_products():
     return list_active_products()
 
 
+@router.get("/admin", response_model=list[ProductResponse])
+def get_admin_products(_admin=Depends(get_current_admin)):
+    return list_products_for_admin()
+
+
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product_by_id(product_id: int):
     product = get_product(product_id)
@@ -19,11 +24,6 @@ def get_product_by_id(product_id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
     return product
-
-
-@router.get("/admin", response_model=list[ProductResponse])
-def get_admin_products(_admin=Depends(get_current_admin)):
-    return list_products_for_admin()
 
 
 @router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)

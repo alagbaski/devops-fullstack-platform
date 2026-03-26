@@ -11,13 +11,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 def admin_overview(_admin=Depends(get_current_admin)):
     counts = get_product_counts()
     return {
-        "products": counts,
+        "product_counts": counts,
         "system_links": [
-            {"label": "Storefront", "href": f"http://localhost:{NGINX_PORT}"},
-            {"label": "Backend health", "href": f"http://localhost:{BACKEND_PORT}/health"},
-            {"label": "Backend metrics", "href": f"http://localhost:{BACKEND_PORT}/metrics"},
-            {"label": "RabbitMQ UI", "href": f"http://localhost:{RABBITMQ_UI_PORT}"},
-            {"label": "Prometheus", "href": "http://localhost:9090"},
-            {"label": "Grafana", "href": "http://localhost:3001"},
+            {"label": "Storefront", "url": f"http://localhost:{NGINX_PORT}"},
+            {"label": "Backend health", "url": f"http://localhost:{BACKEND_PORT}/health"},
+            {"label": "Backend metrics", "url": f"http://localhost:{BACKEND_PORT}/metrics"},
+            {"label": "RabbitMQ UI", "url": f"http://localhost:{RABBITMQ_UI_PORT}"},
+            {"label": "Prometheus", "url": "http://localhost:9090"},
+            {"label": "Grafana", "url": "http://localhost:3001"},
         ],
     }
