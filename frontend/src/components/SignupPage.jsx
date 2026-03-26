@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import AuthButton from "./AuthButton";
+import AuthField from "./AuthField";
 import { signupUser } from "../api/auth";
 
 export default function SignupPage({ onSuccess, onSwitch }) {
@@ -42,48 +44,50 @@ export default function SignupPage({ onSuccess, onSwitch }) {
   }
 
   return (
-    <section className="panel panel-admin">
-      <div className="panel-header">
-        <div>
-          <p className="section-label">Account</p>
-          <h2>Signup</h2>
-        </div>
-        <p>Create an account first, then sign in to receive a JWT in local storage.</p>
-      </div>
-
+    <section className="grid gap-5">
       {error ? (
-        <p className="error-message" role="alert">
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
           {error}
         </p>
       ) : null}
 
-      <form className="admin-login-form" onSubmit={handleSubmit}>
-        <input
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        <AuthField
+          id="user-signup-email"
+          label="Email"
           type="email"
-          placeholder="Email"
+          placeholder="you@example.com"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <input
+        <AuthField
+          id="user-signup-password"
+          label="Password"
           type="password"
-          placeholder="Password"
+          placeholder="Create a password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
-        <input
+        <AuthField
+          id="user-signup-confirm-password"
+          label="Confirm password"
           type="password"
-          placeholder="Confirm password"
+          placeholder="Re-enter your password"
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
         />
-        <button type="submit" disabled={isSubmitting}>
+
+        <AuthButton type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Creating account..." : "Sign up"}
-        </button>
+        </AuthButton>
       </form>
 
-      <button type="button" className="secondary-button" onClick={onSwitch}>
-        Already have an account? Login
-      </button>
+      <p className="text-center text-sm text-slate-500">
+        Already have an account?{" "}
+        <button type="button" className="font-semibold text-slate-700 transition hover:text-slate-950" onClick={onSwitch}>
+          Login
+        </button>
+      </p>
     </section>
   );
 }

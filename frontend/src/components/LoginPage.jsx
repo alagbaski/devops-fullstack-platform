@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import AuthButton from "./AuthButton";
+import AuthField from "./AuthField";
 import { loginUser } from "../api/auth";
 
 export default function LoginPage({ onSuccess, onSwitch }) {
@@ -36,42 +38,42 @@ export default function LoginPage({ onSuccess, onSwitch }) {
   }
 
   return (
-    <section className="panel panel-admin">
-      <div className="panel-header">
-        <div>
-          <p className="section-label">Account</p>
-          <h2>Login</h2>
-        </div>
-        <p>Sign in with your existing account to receive a JWT in local storage.</p>
-      </div>
-
+    <section className="grid gap-5">
       {error ? (
-        <p className="error-message" role="alert">
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
           {error}
         </p>
       ) : null}
 
-      <form className="admin-login-form" onSubmit={handleSubmit}>
-        <input
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        <AuthField
+          id="user-login-email"
+          label="Email"
           type="email"
-          placeholder="Email"
+          placeholder="you@example.com"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <input
+        <AuthField
+          id="user-login-password"
+          label="Password"
           type="password"
-          placeholder="Password"
+          placeholder="Enter your password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in..." : "Login"}
-        </button>
+
+        <AuthButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </AuthButton>
       </form>
 
-      <button type="button" className="secondary-button" onClick={onSwitch}>
-        Need an account? Sign up
-      </button>
+      <p className="text-center text-sm text-slate-500">
+        Don&apos;t have an account?{" "}
+        <button type="button" className="font-semibold text-slate-700 transition hover:text-slate-950" onClick={onSwitch}>
+          Sign up
+        </button>
+      </p>
     </section>
   );
 }
