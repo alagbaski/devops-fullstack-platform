@@ -59,22 +59,28 @@ coverage/
 # ======================
 .vscode/
 .idea/
+.codex
+.codex/
 
 # ======================
 # TEST / COVERAGE
 # ======================
 .coverage
 .coverage.*
+coverage.xml
 htmlcov/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.pre-commit-cache/
+.vitest/
 
 # ======================
 # DATABASE / LOCAL DATA
 # ======================
 postgres_data/
 *.db
+media/
 
 # ======================
 # TERRAFORM / INFRA
@@ -90,3 +96,4 @@ crash.log
 # ======================
 *.bak
 *.tmp
+TODO.md

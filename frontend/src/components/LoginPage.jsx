@@ -5,17 +5,17 @@ import AuthField from "./AuthField";
 import { loginUser } from "../api/auth";
 
 export default function LoginPage({ onSuccess, onSwitch }) {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedIdentifier = identifier.trim().toLowerCase();
 
-    if (!normalizedEmail) {
-      setError("Email is required.");
+    if (!normalizedIdentifier) {
+      setError("Email or username is required.");
       return;
     }
 
@@ -28,7 +28,7 @@ export default function LoginPage({ onSuccess, onSwitch }) {
     setError("");
 
     try {
-      const data = await loginUser({ email: normalizedEmail, password });
+      const data = await loginUser({ identifier: normalizedIdentifier, password });
       onSuccess?.(data);
     } catch (err) {
       setError(err.message || "Login failed.");
@@ -40,19 +40,19 @@ export default function LoginPage({ onSuccess, onSwitch }) {
   return (
     <section className="grid gap-5">
       {error ? (
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
           {error}
         </p>
       ) : null}
 
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <AuthField
-          id="user-login-email"
-          label="Email"
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          id="user-login-identifier"
+          label="Email/Username"
+          type="text"
+          placeholder="Email/Username"
+          value={identifier}
+          onChange={(event) => setIdentifier(event.target.value)}
         />
         <AuthField
           id="user-login-password"
@@ -68,9 +68,17 @@ export default function LoginPage({ onSuccess, onSwitch }) {
         </AuthButton>
       </form>
 
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-gray-500">
+        Use your email or username with your password to access your account.
+      </p>
+
+      <p className="text-center text-sm text-gray-500">
         Don&apos;t have an account?{" "}
-        <button type="button" className="font-semibold text-slate-700 transition hover:text-slate-950" onClick={onSwitch}>
+        <button
+          type="button"
+          className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
+          onClick={onSwitch}
+        >
           Sign up
         </button>
       </p>

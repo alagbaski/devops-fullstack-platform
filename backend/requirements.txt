@@ -1,8 +1,11 @@
 fastapi
-uvicorn
+uvicorn[standard]
 psycopg2-binary
 prometheus-fastapi-instrumentator
-passlib
-python-jose
-celery
+passlib[bcrypt]
+python-jose[cryptography]
+celery[redis]
 email-validator
+sqlalchemy[asyncio]
+alembic
+python-multipart

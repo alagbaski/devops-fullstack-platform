@@ -44,7 +44,7 @@
   }
 
   .hero-card {
-    @apply mx-auto grid w-full max-w-6xl gap-5 p-8 xl:grid-cols-[minmax(0,1.8fr)_minmax(280px,0.9fr)];
+    @apply mx-auto grid w-full max-w-6xl gap-5 p-8;
   }
 
   .hero-copy h1 {
@@ -64,20 +64,10 @@
     @apply mt-5 flex flex-wrap gap-3;
   }
 
-  .status-panel {
-    @apply flex flex-col justify-between gap-4 rounded-[1.5rem] bg-slate-950/95 p-6 text-slate-100;
-  }
-
-  .status-chip {
-    @apply inline-flex min-h-[42px] items-center justify-center self-start rounded-full border border-amber-100/20 bg-amber-50/10 px-4 font-bold text-amber-100;
-  }
-
-  .status-title,
   .panel-header h2 {
     @apply m-0 font-display text-[1.8rem];
   }
 
-  .status-text,
   .panel-header p,
   .empty-state p,
   .empty-state small {
@@ -120,10 +110,6 @@
     @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-70;
   }
 
-  .social-icon {
-    @apply h-5 w-5 shrink-0;
-  }
-
   .button-link {
     @apply no-underline;
   }
@@ -138,6 +124,18 @@
 
   .product-card {
     @apply rounded-[1.4rem] border border-slate-200 bg-white/90 p-5 shadow-sm;
+  }
+
+  .product-media {
+    @apply mb-4 aspect-[4/3] overflow-hidden rounded-[1.1rem] border border-slate-200 bg-slate-100;
+  }
+
+  .product-media-fallback {
+    @apply grid place-items-center bg-gradient-to-br from-blue-100 via-slate-100 to-indigo-100;
+  }
+
+  .product-media-fallback span {
+    @apply text-4xl font-bold text-slate-400;
   }
 
   .product-card-header {
@@ -210,6 +208,11 @@
 
   .admin-card {
     @apply rounded-[1.4rem] border border-slate-200 bg-white/90 p-5;
+  }
+
+  .admin-upload-preview {
+    @apply overflow-hidden rounded-[1.25rem] border border-slate-200 bg-slate-100;
+    aspect-ratio: 4 / 3;
   }
 
   .admin-form-row {

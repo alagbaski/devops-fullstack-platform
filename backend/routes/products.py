@@ -1,8 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from dependencies.auth import get_current_admin
 from schemas.products import ProductCreate, ProductResponse, ProductUpdate
-from services.products import create_product, delete_product, get_product, list_active_products, list_products_for_admin, update_product
+from services.products import (
+    create_product,
+    delete_product,
+    get_product,
+    list_active_products,
+    list_products_for_admin,
+    update_product,
+)
+from services.uploads import save_product_image
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -38,6 +46,15 @@ def add_product(payload: ProductCreate, _admin=Depends(get_current_admin)):
 def patch_product(product_id: int, payload: ProductUpdate, _admin=Depends(get_current_admin)):
     try:
         return update_product(product_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.post("/upload-image")
+def upload_product_image(file: UploadFile = File(...), _admin=Depends(get_current_admin)):
+    try:
+        image_url = save_product_image(file)
+        return {"image_url": image_url}
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 

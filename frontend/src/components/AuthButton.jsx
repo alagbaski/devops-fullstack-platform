@@ -1,9 +1,9 @@
 export default function AuthButton({ children, variant = "primary", className = "", ...props }) {
   const classes = [
-    "inline-flex min-h-14 w-full items-center justify-center rounded-2xl px-5 text-sm font-semibold transition duration-200 disabled:cursor-wait disabled:opacity-70",
+    "w-full rounded-lg px-4 py-2.5 text-sm font-semibold shadow-md transition duration-200 disabled:cursor-wait disabled:opacity-70",
     variant === "secondary"
-      ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-      : "bg-gradient-to-r from-sky-500 via-sky-400 to-slate-500 text-white shadow-lg shadow-sky-200/50 hover:brightness-[1.02]",
+      ? "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50"
+      : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:-translate-y-0.5 hover:opacity-95 hover:shadow-lg",
     className,
   ]
     .filter(Boolean)

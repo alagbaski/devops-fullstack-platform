@@ -8,7 +8,9 @@ router = APIRouter(prefix="/support", tags=["support"])
 celery_app = Celery("backend_support", broker=RABBITMQ_URL, backend="rpc://")
 
 
-@router.post("/contact", response_model=ContactSupportResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/contact", response_model=ContactSupportResponse, status_code=status.HTTP_202_ACCEPTED
+)
 def contact_support(payload: ContactSupportRequest):
     celery_app.send_task(
         "tasks.send_email",

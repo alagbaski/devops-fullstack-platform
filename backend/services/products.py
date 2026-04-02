@@ -10,15 +10,13 @@ from schemas.products import ProductCreate, ProductUpdate
 def list_active_products() -> list[dict]:
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT id, name, slug, description, price, currency, inventory_count,
                        image_url, is_active, created_at, updated_at
                 FROM products
                 WHERE is_active = TRUE
                 ORDER BY created_at DESC;
-                """
-            )
+                """)
             rows = cur.fetchall()
 
     return [_row_to_product(row) for row in rows]
@@ -47,14 +45,12 @@ def get_product(product_id: int) -> dict | None:
 def list_products_for_admin() -> list[dict]:
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT id, name, slug, description, price, currency, inventory_count,
                        image_url, is_active, created_at, updated_at
                 FROM products
                 ORDER BY created_at DESC;
-                """
-            )
+                """)
             rows = cur.fetchall()
 
     return [_row_to_product(row) for row in rows]
@@ -67,7 +63,14 @@ def create_product(payload: ProductCreate) -> dict:
                 cur.execute(
                     """
                     INSERT INTO products (
-                        name, slug, description, price, currency, inventory_count, image_url, is_active
+                        name,
+                        slug,
+                        description,
+                        price,
+                        currency,
+                        inventory_count,
+                        image_url,
+                        is_active
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, name, slug, description, price, currency, inventory_count,
@@ -147,15 +150,13 @@ def delete_product(product_id: int) -> None:
 def get_product_counts() -> dict:
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT
                     COUNT(*) AS total,
                     COUNT(*) FILTER (WHERE is_active = TRUE) AS active,
                     COUNT(*) FILTER (WHERE is_active = FALSE) AS inactive
                 FROM products;
-                """
-            )
+                """)
             row = cur.fetchone()
 
     return {

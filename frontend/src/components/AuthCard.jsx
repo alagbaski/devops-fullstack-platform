@@ -1,7 +1,7 @@
 export default function AuthCard({ className = "", children }) {
   return (
     <section
-      className={`rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-auth backdrop-blur xl:p-10 ${className}`.trim()}
+      className={`w-full max-w-md space-y-5 rounded-2xl border border-white/80 bg-white/90 p-8 shadow-xl ring-1 ring-slate-100/80 backdrop-blur-sm ${className}`.trim()}
     >
       {children}
     </section>

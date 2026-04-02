@@ -25,13 +25,11 @@ def create_feedback(user_id: int, payload: FeedbackCreate) -> dict:
 def list_feedback() -> list[dict]:
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT id, user_id, message, created_at
                 FROM feedback
                 ORDER BY created_at DESC;
-                """
-            )
+                """)
             rows = cur.fetchall()
 
     return [Feedback.from_db_row(row).to_response() for row in rows]

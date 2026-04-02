@@ -6,6 +6,7 @@ import { signupUser } from "../api/auth";
 
 export default function SignupPage({ onSuccess, onSwitch }) {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,9 +15,20 @@ export default function SignupPage({ onSuccess, onSwitch }) {
   async function handleSubmit(event) {
     event.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedUsername = username.trim().toLowerCase();
 
     if (!normalizedEmail) {
       setError("Email is required.");
+      return;
+    }
+
+    if (!normalizedUsername) {
+      setError("Username is required.");
+      return;
+    }
+
+    if (normalizedUsername.length < 3) {
+      setError("Username must be at least 3 characters.");
       return;
     }
 
@@ -34,7 +46,11 @@ export default function SignupPage({ onSuccess, onSwitch }) {
     setError("");
 
     try {
-      const data = await signupUser({ email: normalizedEmail, password });
+      const data = await signupUser({
+        email: normalizedEmail,
+        username: normalizedUsername,
+        password,
+      });
       onSuccess?.(data);
     } catch (err) {
       setError(err.message || "Signup failed.");
@@ -46,7 +62,7 @@ export default function SignupPage({ onSuccess, onSwitch }) {
   return (
     <section className="grid gap-5">
       {error ? (
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
           {error}
         </p>
       ) : null}
@@ -59,6 +75,14 @@ export default function SignupPage({ onSuccess, onSwitch }) {
           placeholder="you@example.com"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+        />
+        <AuthField
+          id="user-signup-username"
+          label="Username"
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
         />
         <AuthField
           id="user-signup-password"
@@ -82,9 +106,17 @@ export default function SignupPage({ onSuccess, onSwitch }) {
         </AuthButton>
       </form>
 
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-gray-500">
+        Create a developer account with your email, username, and secure password.
+      </p>
+
+      <p className="text-center text-sm text-gray-500">
         Already have an account?{" "}
-        <button type="button" className="font-semibold text-slate-700 transition hover:text-slate-950" onClick={onSwitch}>
+        <button
+          type="button"
+          className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
+          onClick={onSwitch}
+        >
           Login
         </button>
       </p>
