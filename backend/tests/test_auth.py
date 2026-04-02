@@ -1,8 +1,8 @@
 """Tests for auth routes."""
-
 import pytest
 from fastapi import HTTPException
 
+from exceptions import EntityAlreadyExistsException
 from routes import auth as auth_routes
 
 from .conftest import sample_user_response
@@ -28,7 +28,7 @@ def test_signup_success(monkeypatch: pytest.MonkeyPatch):
 
 def test_signup_duplicate_email(monkeypatch: pytest.MonkeyPatch):
     def _raise_duplicate(email: str, username: str, password: str):
-        raise ValueError("Email is already registered")
+        raise EntityAlreadyExistsException("Email is already registered")
 
     monkeypatch.setattr(auth_routes, "create_user", _raise_duplicate)
 
