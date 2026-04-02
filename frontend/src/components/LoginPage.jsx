@@ -1,15 +1,24 @@
+/**
+ * LoginPage Component
+ * 
+ * Handles the user login form, input validation, and 
+ * execution of the login API call.
+ */
 import { useState } from "react";
 
 import AuthButton from "./AuthButton";
 import AuthField from "./AuthField";
 import { loginUser } from "../api/auth";
 
+// onSuccess: Callback triggered after valid login
+// onSwitch: Callback to toggle to the Signup view
 export default function LoginPage({ onSuccess, onSwitch }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Basic frontend validation before hitting the server
   async function handleSubmit(event) {
     event.preventDefault();
     const normalizedIdentifier = identifier.trim().toLowerCase();
@@ -28,6 +37,7 @@ export default function LoginPage({ onSuccess, onSwitch }) {
     setError("");
 
     try {
+      // loginUser saves the token to localStorage automatically
       const data = await loginUser({ identifier: normalizedIdentifier, password });
       onSuccess?.(data);
     } catch (err) {

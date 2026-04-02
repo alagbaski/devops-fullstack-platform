@@ -1,3 +1,9 @@
+/**
+ * SignupPage Component
+ * 
+ * Manages user registration, password confirmation matching,
+ * and interaction with the signup API endpoint.
+ */
 import { useState } from "react";
 
 import AuthButton from "./AuthButton";
@@ -12,6 +18,7 @@ export default function SignupPage({ onSuccess, onSwitch }) {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Extended validation for signup (username length, password matching)
   async function handleSubmit(event) {
     event.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();

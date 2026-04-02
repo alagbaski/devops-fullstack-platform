@@ -10,12 +10,14 @@ import LogoMark from "./components/LogoMark";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignupPage from "./components/SignupPage";
 
+// Global Constants & Configuration
 const API_URL = "/api";
 const CART_STORAGE_KEY = "devops-platform-cart";
 const ADMIN_TOKEN_STORAGE_KEY = "devops-platform-admin-token";
 
 const supportEmail = "mailto:support@example.com";
 
+// Default state for the product creation form
 const initialAdminForm = {
   name: "",
   slug: "",
@@ -27,6 +29,7 @@ const initialAdminForm = {
   is_active: true,
 };
 
+// Helper: Safely read and parse JSON from browser localStorage
 function readLocalStorage(key, fallback) {
   if (typeof window === "undefined") {
     return fallback;
@@ -40,6 +43,7 @@ function readLocalStorage(key, fallback) {
   }
 }
 
+// Helper: Read a raw string token from localStorage
 function readToken(key) {
   if (typeof window === "undefined") {
     return "";
@@ -48,6 +52,7 @@ function readToken(key) {
   return window.localStorage.getItem(key) || "";
 }
 
+// Helper: Manually decode a JWT payload (base64) without a heavy library
 function decodeTokenPayload(token) {
   if (!token) {
     return null;
@@ -63,16 +68,19 @@ function decodeTokenPayload(token) {
   }
 }
 
+// Helper: Check if a JWT contains a specific user role
 function hasRole(token, expectedRole) {
   const payload = decodeTokenPayload(token);
   return payload?.role === expectedRole;
 }
 
+// Helper: Extract email from JWT payload for form pre-filling
 function getTokenEmail(token) {
   const payload = decodeTokenPayload(token);
   return payload?.email || "";
 }
 
+// UI Component: Simple page header with title and intro text
 function AppHeader({ title, description, actions }) {
   return (
     <section className="hero-card panel">
@@ -87,6 +95,7 @@ function AppHeader({ title, description, actions }) {
   );
 }
 
+// UI Component: A sophisticated slide-out menu used for Shop and Admin navigation
 function WorkspaceSidebar({
   badge,
   title,
@@ -213,6 +222,7 @@ function WorkspaceSidebar({
   );
 }
 
+// UI Component: Animated background glows for Auth pages
 function AuthBackdrop({ admin = false }) {
   const glowClasses = admin
     ? {
@@ -237,6 +247,7 @@ function AuthBackdrop({ admin = false }) {
   );
 }
 
+// UI Component: Marketing panel shown next to Login/Signup forms
 function AuthPromoPanel({ eyebrow, title, description, bullets, admin = false }) {
   return (
     <section className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/60 p-8 shadow-[0_32px_120px_rgba(15,23,42,0.12)] backdrop-blur-xl">
@@ -275,6 +286,7 @@ function AuthPromoPanel({ eyebrow, title, description, bullets, admin = false })
   );
 }
 
+// UI Component: Handles product image display with a fallback for broken links
 function ProductMedia({ product }) {
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = Boolean(product.image_url) && !hasImageError;
@@ -296,6 +308,7 @@ function ProductMedia({ product }) {
   );
 }
 
+// Page Component: The first screen users see (Login/Signup toggle)
 function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }) {
   const navigate = useNavigate();
   const [authMessage, setAuthMessage] = useState("");
@@ -448,6 +461,7 @@ function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }) {
   );
 }
 
+// Page Component: The main customer shopping experience
 function ShopPage({ products, cart, isProductsLoading, productError, cartCount, cartSubtotal, onRefresh, onAddToCart, onUpdateCartQuantity, onRemoveFromCart, onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -625,6 +639,7 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
   );
 }
 
+// Page Component: Support and Contact forms for users
 function SupportPage({
   feedbackText,
   feedbackError,
@@ -743,6 +758,7 @@ function SupportPage({
   );
 }
 
+// Page Component: Specialized login screen for Admin access
 function AdminLoginPage({ adminUsername, adminPassword, adminError, adminMessage, isAdminSubmitting, setAdminUsername, setAdminPassword, onSubmit, hasAdminSession, onClearSession }) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50 to-blue-100 px-4 py-10 sm:px-6 lg:px-8">
@@ -855,6 +871,7 @@ function AdminLoginPage({ adminUsername, adminPassword, adminError, adminMessage
   );
 }
 
+// Page Component: Privileged dashboard for product and system management
 function AdminDashboardPage({
   adminOverview,
   adminProducts,
@@ -1149,6 +1166,7 @@ function AdminDashboardPage({
   );
 }
 
+// THE MAIN APPLICATION COMPONENT
 export default function App() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -1182,21 +1200,25 @@ export default function App() {
   const [contactSuccess, setContactSuccess] = useState("");
   const [isContactSubmitting, setIsContactSubmitting] = useState(false);
 
+  // useMemo prevents expensive re-calculations of cart totals unless 'cart' changes
   const cartCount = useMemo(
     () => cart.reduce((total, item) => total + item.quantity, 0),
     [cart]
   );
 
+  // Calculate total price of all items in the cart
   const cartSubtotal = useMemo(
     () => cart.reduce((total, item) => total + item.quantity * Number(item.price), 0),
     [cart]
   );
 
+  // Session Checks: Convert tokens into booleans for UI logic
   const hasUserSession = Boolean(userToken);
   const hasAdminSession = Boolean(adminToken) && hasRole(adminToken, "admin");
 
+  // API Logic: Fetch the public product list
   async function fetchProducts() {
-    setIsProductsLoading(true);
+    setIsProductsLoading(true); // Start loading state
     setProductError("");
 
     try {
@@ -1214,6 +1236,7 @@ export default function App() {
     }
   }
 
+  // Cart Logic: Add item or increment quantity if already present
   function addToCart(product) {
     setCart((currentCart) => {
       const existingItem = currentCart.find((item) => item.id === product.id);
@@ -1240,6 +1263,7 @@ export default function App() {
     });
   }
 
+  // Cart Logic: Adjust quantity or remove item if quantity drops to 0
   function updateCartQuantity(productId, nextQuantity) {
     setCart((currentCart) =>
       currentCart.flatMap((item) => {
@@ -1261,10 +1285,12 @@ export default function App() {
     );
   }
 
+  // Cart Logic: Instant removal of a product
   function removeFromCart(productId) {
     setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
   }
 
+  // Admin Logic: Fetch protected dashboard data (overview, catalog, feedback)
   async function fetchAdminData(token = adminToken) {
     if (!token) {
       return;
@@ -1281,6 +1307,7 @@ export default function App() {
         fetch(`${API_URL}/v1/feedback`, { headers }),
       ]);
 
+      // Check for authentication failures
       if ([overviewResponse, productsResponse, feedbackResponse].some((response) => response.status === 401 || response.status === 403)) {
         throw new Error("Admin session expired or does not have access.");
       }
@@ -1310,6 +1337,7 @@ export default function App() {
     }
   }
 
+  // Admin Logic: Authenticate specifically for administrative access
   async function handleAdminLogin(event) {
     event.preventDefault();
     setIsAdminSubmitting(true);
@@ -1337,11 +1365,13 @@ export default function App() {
     }
   }
 
+  // Logout Logic: Clear tokens and redirect to landing
   function handleUserLogout() {
     setUserToken("");
     navigate("/", { replace: true });
   }
 
+  // Logout Logic: Reset all admin state
   function handleAdminLogout() {
     setAdminToken("");
     setAdminOverview(null);
@@ -1352,6 +1382,7 @@ export default function App() {
     navigate("/admin", { replace: true });
   }
 
+  // Product Logic: Upload image to server and update form state
   async function handleUploadProductImage(file) {
     if (!file) {
       return;
@@ -1391,6 +1422,7 @@ export default function App() {
     }
   }
 
+  // Feedback Logic: Submit user message to database
   async function handleSubmitFeedback(event) {
     event.preventDefault();
     setIsFeedbackSubmitting(true);
@@ -1430,6 +1462,7 @@ export default function App() {
     }
   }
 
+  // Support Logic: Queue an email in the background worker
   async function handleSubmitContact(event) {
     event.preventDefault();
     setIsContactSubmitting(true);
@@ -1473,6 +1506,7 @@ export default function App() {
     }
   }
 
+  // Admin Logic: POST new product to the catalog
   async function handleCreateProduct(event) {
     event.preventDefault();
     setIsAdminSubmitting(true);
@@ -1508,6 +1542,7 @@ export default function App() {
     }
   }
 
+  // Admin Logic: Toggle product visibility (is_active)
   async function toggleProductStatus(product) {
     setIsAdminSubmitting(true);
     setAdminError("");
@@ -1537,6 +1572,7 @@ export default function App() {
     }
   }
 
+  // Admin Logic: Permanent product deletion
   async function handleDeleteProduct(product) {
     setIsAdminSubmitting(true);
     setAdminError("");
@@ -1564,18 +1600,21 @@ export default function App() {
     }
   }
 
+  // Effect: Initial product load on app mount
   useEffect(() => {
     fetchProducts().catch((err) => {
       setProductError(err.message || "Failed to load products.");
     });
   }, []);
 
+  // Effect: Persist cart to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }
   }, [cart]);
 
+  // Effect: Sync userToken state with localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (userToken) {
@@ -1586,6 +1625,7 @@ export default function App() {
     }
   }, [userToken]);
 
+  // Effect: Automatically update contact email when user logs in
   useEffect(() => {
     const tokenEmail = getTokenEmail(userToken);
     setContactForm((current) => ({
@@ -1594,6 +1634,7 @@ export default function App() {
     }));
   }, [userToken]);
 
+  // Effect: Sync adminToken state with localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (adminToken) {
@@ -1604,6 +1645,7 @@ export default function App() {
     }
   }, [adminToken]);
 
+  // Effect: Validate cart items against the latest product list (remove inactive/deleted items)
   useEffect(() => {
     if (products.length === 0) {
       return;
@@ -1635,18 +1677,21 @@ export default function App() {
     );
   }, [products]);
 
+  // Effect: Fetch admin data if a valid admin session exists
   useEffect(() => {
     if (hasAdminSession) {
       fetchAdminData(adminToken).catch(() => {});
     }
   }, [adminToken, hasAdminSession]);
 
+  // Effect: Auto-logout admin if the token expires or is invalid
   useEffect(() => {
     if (adminToken && !hasAdminSession) {
       setAdminToken("");
     }
   }, [adminToken, hasAdminSession]);
 
+  // Routing Configuration
   return (
     <Routes>
       <Route

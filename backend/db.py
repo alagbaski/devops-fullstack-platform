@@ -1,3 +1,10 @@
+"""
+Database Utility Module
+
+Handles the connection to PostgreSQL and initializes the database schema.
+Includes helper functions for username normalization and ensures that an 
+initial admin account is created based on environment variables.
+"""
 import time
 from contextlib import closing
 
@@ -16,17 +23,23 @@ from security.passwords import hash_password
 
 
 def normalize_username(value: str) -> str:
+    """Removes non-alphanumeric characters and lowercases the username."""
     normalized = "".join(char for char in value.strip().lower() if char.isalnum() or char == "_")
     return normalized or "user"
 
 
 def default_username_from_email(email: str) -> str:
+    """Generates a base username from the local-part of an email address."""
     return normalize_username(email.split("@", 1)[0])
 
 
 def ensure_unique_username(
     cur, desired_username: str, *, exclude_user_id: int | None = None
 ) -> str:
+    """
+    Checks if a username exists in the database. If it does, appends a 
+    numeric suffix until a unique name is found (e.g., 'admin', 'admin2').
+    """
     candidate = normalize_username(desired_username)
     suffix = 1
 
@@ -47,6 +60,12 @@ def ensure_unique_username(
 
 
 def get_conn():
+    """
+    Creates a connection to PostgreSQL.
+    
+    Includes a retry loop to handle "race conditions" where the backend 
+    might start up faster than the database container is ready to accept connections.
+    """
     retries = 10
     while retries > 0:
         try:
@@ -67,6 +86,10 @@ def get_conn():
 
 
 def initialize_database() -> None:
+    """
+    Idempotent database setup. 
+    Creates tables, indexes, and an initial admin user if they don't exist.
+    """
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
             cur.execute("""
@@ -88,6 +111,7 @@ def initialize_database() -> None:
                 """)
             cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;")
 
+            # Migration logic: Ensure all existing users have a non-null username
             cur.execute("SELECT id, email FROM users WHERE username IS NULL OR username = '';")
             missing_usernames = cur.fetchall()
             for user_id, email in missing_usernames:
@@ -140,6 +164,8 @@ def initialize_database() -> None:
                 CREATE INDEX IF NOT EXISTS idx_feedback_user_id
                 ON feedback (user_id);
                 """)
+
+            # Bootstrap: Create the Admin account if credentials are provided in .env
             if ADMIN_EMAIL and ADMIN_PASSWORD:
                 admin_username = normalize_username(
                     ADMIN_USERNAME or default_username_from_email(ADMIN_EMAIL)
