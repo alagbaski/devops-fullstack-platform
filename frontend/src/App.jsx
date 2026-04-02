@@ -6,6 +6,7 @@ import AuthButton from "./components/AuthButton";
 import AuthCard from "./components/AuthCard";
 import AuthField from "./components/AuthField";
 import LoginPage from "./components/LoginPage";
+import LogoMark from "./components/LogoMark";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignupPage from "./components/SignupPage";
 
@@ -13,7 +14,6 @@ const API_URL = "/api";
 const CART_STORAGE_KEY = "devops-platform-cart";
 const ADMIN_TOKEN_STORAGE_KEY = "devops-platform-admin-token";
 
-const githubUrl = "https://github.com/alagbaski/devops-fullstack-platform";
 const supportEmail = "mailto:support@example.com";
 
 const initialAdminForm = {
@@ -70,18 +70,7 @@ function hasRole(token, expectedRole) {
 
 function getTokenEmail(token) {
   const payload = decodeTokenPayload(token);
-  return payload?.sub || "";
-}
-
-function GithubMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="social-icon">
-      <path
-        fill="currentColor"
-        d="M12 2C6.477 2 2 6.589 2 12.248c0 4.527 2.865 8.368 6.839 9.724.5.095.683-.222.683-.493 0-.244-.009-.889-.014-1.744-2.782.617-3.369-1.373-3.369-1.373-.455-1.181-1.11-1.496-1.11-1.496-.908-.637.069-.625.069-.625 1.004.072 1.532 1.055 1.532 1.055.892 1.565 2.341 1.113 2.91.851.091-.664.349-1.113.635-1.369-2.22-.259-4.555-1.14-4.555-5.074 0-1.121.391-2.037 1.03-2.755-.103-.259-.446-1.303.098-2.717 0 0 .84-.276 2.75 1.052A9.32 9.32 0 0 1 12 6.838a9.3 9.3 0 0 1 2.504.349c1.909-1.328 2.748-1.052 2.748-1.052.546 1.414.203 2.458.1 2.717.64.718 1.028 1.634 1.028 2.755 0 3.943-2.338 4.812-4.566 5.067.359.318.679.946.679 1.907 0 1.378-.012 2.49-.012 2.829 0 .274.18.593.688.492C19.138 20.612 22 16.773 22 12.248 22 6.589 17.523 2 12 2Z"
-      />
-    </svg>
-  );
+  return payload?.email || "";
 }
 
 function AppHeader({ title, description, actions }) {
@@ -94,16 +83,216 @@ function AppHeader({ title, description, actions }) {
 
         {actions ? <div className="hero-actions">{actions}</div> : null}
       </div>
+    </section>
+  );
+}
 
-      <div className="status-panel">
-        <span className="status-chip">Authentication-first UX</span>
-        <p className="status-title">Route protection</p>
-        <p className="status-text">
-          Public visitors land on authentication first, shoppers enter the catalog only after login,
-          and admin workflows stay behind a dedicated protected route.
-        </p>
+function WorkspaceSidebar({
+  badge,
+  title,
+  description,
+  stats = [],
+  links = [],
+  actions = [],
+  isOpen,
+  onToggle,
+  onClose,
+}) {
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-label="Toggle workspace menu"
+        className={`fixed top-5 z-[70] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-slate-950 text-white shadow-[0_16px_40px_rgba(15,23,42,0.28)] transition duration-300 hover:-translate-y-0.5 hover:bg-slate-900 lg:top-6 ${isOpen ? "left-[15.6rem]" : "left-5 lg:left-6"}`}
+        onClick={onToggle}
+      >
+        <span className="grid gap-1.5">
+          <span className="block h-0.5 w-4 rounded-full bg-current" />
+          <span className="block h-0.5 w-4 rounded-full bg-current" />
+          <span className="block h-0.5 w-4 rounded-full bg-current" />
+        </span>
+      </button>
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-[60] flex w-[18.5rem] flex-col overflow-hidden border-r border-white/10 bg-slate-950 text-slate-100 shadow-[0_24px_80px_rgba(15,23,42,0.35)] transition duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="flex items-center gap-4 border-b border-white/10 px-5 pb-5 pt-20">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 text-base font-bold text-white shadow-lg">
+            OD
+          </div>
+          <div className={`min-w-0 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+            <div className="text-xs font-bold uppercase tracking-[0.22em] text-blue-200">{badge}</div>
+            <div className="mt-1 text-lg font-semibold text-white">{title}</div>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-5">
+          <div className={`grid gap-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+            <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+              <p className="text-sm leading-6 text-slate-300">{description}</p>
+            </div>
+
+            {stats.length ? (
+              <div className="grid gap-3">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      {stat.label}
+                    </div>
+                    <div className="mt-2 text-xl font-semibold text-white">{stat.value}</div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {links.length ? (
+              <div className="grid gap-2">
+                {links.map((link) =>
+                  link.href ? (
+                    <a
+                      key={link.label}
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition duration-200 hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white"
+                      href={link.href}
+                      onClick={onClose}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.label}
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition duration-200 hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white"
+                      to={link.to}
+                      onClick={onClose}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className={`grid gap-2 border-t border-white/10 px-4 py-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              type="button"
+              className={`rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 ${
+                action.tone === "danger"
+                  ? "bg-white text-slate-950 hover:bg-slate-100"
+                  : "border border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
+              }`}
+              onClick={() => {
+                onClose();
+                action.onClick();
+              }}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function AuthBackdrop({ admin = false }) {
+  const glowClasses = admin
+    ? {
+        top: "bg-indigo-500/20",
+        middle: "bg-blue-500/20",
+        bottom: "bg-slate-900/10",
+      }
+    : {
+        top: "bg-blue-500/20",
+        middle: "bg-indigo-500/20",
+        bottom: "bg-cyan-400/15",
+      };
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className={`absolute left-[-8rem] top-[-6rem] h-64 w-64 rounded-full blur-3xl ${glowClasses.top}`} />
+      <div className={`absolute right-[-5rem] top-1/3 h-72 w-72 rounded-full blur-3xl ${glowClasses.middle}`} />
+      <div className={`absolute bottom-[-8rem] left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl ${glowClasses.bottom}`} />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+      <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
+    </div>
+  );
+}
+
+function AuthPromoPanel({ eyebrow, title, description, bullets, admin = false }) {
+  return (
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/60 p-8 shadow-[0_32px_120px_rgba(15,23,42,0.12)] backdrop-blur-xl">
+      <div
+        aria-hidden="true"
+        className={`absolute inset-x-8 top-0 h-px bg-gradient-to-r ${admin ? "from-transparent via-indigo-400/70 to-transparent" : "from-transparent via-blue-400/70 to-transparent"}`}
+      />
+      <div className="relative grid gap-8">
+        <div className="grid gap-4">
+          <span className="mx-auto inline-flex w-fit rounded-full border border-blue-200/80 bg-white/80 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-gray-600 shadow-sm xl:mx-0">
+            {eyebrow}
+          </span>
+          <div className="grid gap-3">
+            <h2 className="mx-auto max-w-[14ch] text-center text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl xl:mx-0 xl:text-left">
+              {title}
+            </h2>
+            <p className="mx-auto max-w-xl text-center text-base leading-7 text-gray-500 xl:mx-0 xl:text-left">
+              {description}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {bullets.map((bullet) => (
+            <div
+              key={bullet.title}
+              className="grid gap-1 rounded-2xl border border-white/80 bg-white/80 px-5 py-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="text-sm font-semibold text-gray-900">{bullet.title}</div>
+              <div className="text-sm leading-6 text-gray-500">{bullet.copy}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
+  );
+}
+
+function ProductMedia({ product }) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const showImage = Boolean(product.image_url) && !hasImageError;
+
+  return showImage ? (
+    <div className="product-media">
+      <img
+        src={product.image_url}
+        alt={product.name}
+        className="h-full w-full object-cover"
+        loading="lazy"
+        onError={() => setHasImageError(true)}
+      />
+    </div>
+  ) : (
+    <div className="product-media product-media-fallback" aria-hidden="true">
+      <span>{product.name.slice(0, 1).toUpperCase()}</span>
+    </div>
   );
 }
 
@@ -112,178 +301,191 @@ function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }) {
   const [authMessage, setAuthMessage] = useState("");
 
   return (
-    <main className="min-h-screen bg-auth-gradient px-5 py-10 text-ink sm:px-6 lg:px-8">
-      <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-3xl flex-col items-center justify-center gap-6">
-        <header className="space-y-4 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">YourCompany</p>
-          <h1 className="font-display text-5xl leading-none tracking-[-0.04em] text-slate-950 sm:text-6xl">
-            Welcome to our store
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg text-slate-600">
-            Sign in or create an account to start shopping
-          </p>
-        </header>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-10 sm:px-6 lg:px-8">
+      <AuthBackdrop />
+      <section className="relative mx-auto grid min-h-screen w-full max-w-6xl items-center gap-8 py-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)] xl:gap-10">
+        <div className="grid gap-8">
+          <div className="grid gap-6">
+            <LogoMark />
 
-        <AuthCard className="w-full max-w-2xl p-8 sm:p-10">
-          <div className="w-full space-y-5">
-            <div className="flex w-full justify-center mb-8">
-              <div className="inline-flex rounded-full border border-slate-200 bg-slate-100/90 p-1 shadow-sm">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={authMode === "login"}
-                  className={`h-12 min-w-[140px] rounded-full px-6 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-sky-100 ${
-                    authMode === "login"
-                      ? "bg-white text-slate-950 shadow-sm"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
-                  onClick={() => {
-                    setAuthMessage("");
-                    setAuthMode("login");
+            <header className="grid gap-4 text-center xl:text-left">
+              <h1 className="mx-auto max-w-[16ch] text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl xl:mx-0 xl:max-w-none xl:whitespace-nowrap">
+                Welcome to your developer store
+              </h1>
+              <p className="mx-auto max-w-xl text-base leading-7 text-gray-500 xl:mx-0">
+                Sign in or create an account to access curated tooling, developer resources, and a cleaner workflow.
+              </p>
+            </header>
+          </div>
+
+          <AuthPromoPanel
+            eyebrow="Premium SaaS Workflow"
+            title="Built for engineers who want clarity."
+            description="OPSDEV brings store access, account flow, and admin tooling into one consistent product experience with a cleaner front door."
+            bullets={[
+              {
+                title: "One polished entry point",
+                copy: "Users can sign in or create an account without leaving the same focused workspace.",
+              },
+              {
+                title: "Technical, not noisy",
+                copy: "The interface stays minimal while still feeling premium, branded, and intentional.",
+              },
+              {
+                title: "Ready for protected flows",
+                copy: "Shoppers continue into the catalog, while admins stay on their own controlled path.",
+              },
+            ]}
+          />
+        </div>
+
+        <div className="mx-auto grid w-full max-w-md gap-5 xl:max-w-none">
+          <AuthCard className="w-full">
+            <div className="space-y-5">
+              <div className="flex w-full justify-center">
+                <div className="inline-flex w-full max-w-[17rem] rounded-full border border-white/70 bg-gray-100/90 p-1 shadow-sm">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={authMode === "login"}
+                    className={`flex-1 rounded-full px-5 py-2 text-sm font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      authMode === "login"
+                        ? "bg-white text-gray-900 shadow-md"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                    onClick={() => {
+                      setAuthMessage("");
+                      setAuthMode("login");
+                    }}
+                  >
+                    Login
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={authMode === "signup"}
+                    className={`flex-1 rounded-full px-5 py-2 text-sm font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      authMode === "signup"
+                        ? "bg-white text-gray-900 shadow-md"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                    onClick={() => {
+                      setAuthMessage("");
+                      setAuthMode("signup");
+                    }}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              </div>
+
+              {authMessage ? (
+                <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">
+                  {authMessage}
+                </p>
+              ) : null}
+
+              {authMode === "login" ? (
+                <LoginPage
+                  onSuccess={(data) => {
+                    setUserToken(data.access_token);
+                    setAuthMessage("Welcome back. Redirecting to the shop.");
+                    navigate("/shop", { replace: true });
                   }}
-                >
-                  Login
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={authMode === "signup"}
-                  className={`h-12 min-w-[140px] rounded-full px-6 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-sky-100 ${
-                    authMode === "signup"
-                      ? "bg-white text-slate-950 shadow-sm"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
-                  onClick={() => {
+                  onSwitch={() => {
                     setAuthMessage("");
                     setAuthMode("signup");
                   }}
-                >
-                  Sign Up
-                </button>
-              </div>
-            </div>
-
-            {authMessage ? (
-              <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                {authMessage}
-              </p>
-            ) : null}
-
-            {authMode === "login" ? (
-              <LoginPage
-                onSuccess={(data) => {
-                  setUserToken(data.access_token);
-                  setAuthMessage("Welcome back. Redirecting to the shop.");
-                  navigate("/shop", { replace: true });
-                }}
-                onSwitch={() => {
-                  setAuthMessage("");
-                  setAuthMode("signup");
-                }}
-              />
-            ) : (
-              <SignupPage
-                onSuccess={() => {
-                  setAuthMessage("Account created. You can sign in now.");
-                  setAuthMode("login");
-                }}
-                onSwitch={() => {
-                  setAuthMessage("");
-                  setAuthMode("login");
-                }}
-              />
-            )}
-
-            <div className="flex items-center gap-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-              <span className="h-px flex-1 bg-slate-200" />
-              <span>OR</span>
-              <span className="h-px flex-1 bg-slate-200" />
-            </div>
-
-            <a
-              className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
-              href={githubUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <GithubMark />
-              <span>Continue with GitHub</span>
-            </a>
-
-            {userToken ? (
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-1 text-sm">
-                <Link className="font-semibold text-slate-700 hover:text-slate-950" to="/shop">
-                  Continue to shop
-                </Link>
-                <button
-                  type="button"
-                  className="font-semibold text-slate-500 hover:text-slate-900"
-                  onClick={() => {
-                    setUserToken("");
-                    setAuthMessage("You have been signed out.");
+                />
+              ) : (
+                <SignupPage
+                  onSuccess={() => {
+                    setAuthMessage("Account created. You can sign in now.");
+                    setAuthMode("login");
                   }}
-                >
-                  Log out
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </AuthCard>
+                  onSwitch={() => {
+                    setAuthMessage("");
+                    setAuthMode("login");
+                  }}
+                />
+              )}
 
-        <AuthCard className="w-full max-w-xl border-slate-200/80 bg-white/65 p-7 shadow-support">
-          <div className="space-y-3 text-center">
-            <h2 className="font-display text-3xl leading-tight tracking-[-0.03em] text-slate-950">Need help?</h2>
-            <p className="mx-auto max-w-md text-sm text-slate-600">
-              If you&apos;re having trouble signing in, contact support.
-            </p>
-            <div className="pt-2">
-              <a
-                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-6 text-sm font-semibold text-white transition hover:bg-slate-800"
-                href={supportEmail}
-              >
-                Email us
-              </a>
+              {userToken ? (
+                <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+                  <Link
+                    className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
+                    to="/shop"
+                  >
+                    Continue to shop
+                  </Link>
+                  <button
+                    type="button"
+                    className="font-medium text-gray-500 transition duration-200 hover:text-gray-900"
+                    onClick={() => {
+                      setUserToken("");
+                      setAuthMessage("You have been signed out.");
+                    }}
+                  >
+                    Log out
+                  </button>
+                </div>
+              ) : null}
             </div>
-          </div>
-        </AuthCard>
+          </AuthCard>
 
-        <footer className="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-500">
-          <span>&copy; YourCompany</span>
-          <a className="font-semibold text-slate-700 hover:text-slate-950" href={githubUrl} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-        </footer>
+          <div className="text-center text-sm text-gray-500 xl:text-left">
+            Need help?{" "}
+            <a
+              className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
+              href={supportEmail}
+            >
+              Contact support
+            </a>
+          </div>
+        </div>
       </section>
     </main>
   );
 }
 
 function ShopPage({ products, cart, isProductsLoading, productError, cartCount, cartSubtotal, onRefresh, onAddToCart, onUpdateCartQuantity, onRemoveFromCart, onLogout }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <main className="app-shell">
+    <>
+      <WorkspaceSidebar
+        badge="Storefront"
+        title="OPSDEV Shop"
+        description="Move through your signed-in workspace with a proper app menu instead of a floating utility drawer."
+        stats={[
+          { label: "Products", value: isProductsLoading ? "..." : products.length },
+          { label: "Cart Items", value: cartCount },
+          { label: "Subtotal", value: `USD ${cartSubtotal.toFixed(2)}` },
+        ]}
+        links={[
+          { label: "Account home", to: "/" },
+          { label: "Catalog", href: "#shop-catalog" },
+          { label: "Cart", href: "#shop-cart" },
+          { label: "Support", to: "/support" },
+          { label: "Admin login", to: "/admin" },
+        ]}
+        actions={[
+          { label: isProductsLoading ? "Refreshing..." : "Refresh catalog", onClick: onRefresh },
+          { label: "Log out", onClick: onLogout, tone: "danger" },
+        ]}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen((current) => !current)}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
+      <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[20.5rem]" : "lg:pl-24"}`}>
       <AppHeader
         title="Browse the protected storefront."
         description="Signed-in users can browse active products and keep a simple cart in local storage."
-        actions={
-          <>
-            <Link className="secondary-button button-link" to="/">
-              Account
-            </Link>
-            <Link className="secondary-button button-link" to="/support">
-              Support
-            </Link>
-            <Link className="secondary-button button-link" to="/admin">
-              Admin
-            </Link>
-            <button type="button" className="secondary-button" onClick={onLogout}>
-              Log out
-            </button>
-          </>
-        }
       />
 
       <section className="workspace-grid workspace-grid-store">
-        <section className="panel panel-products">
+        <section id="shop-catalog" className="panel panel-products scroll-mt-24">
           <div className="panel-header panel-header-split">
             <div>
               <p className="section-label">Shop</p>
@@ -322,6 +524,8 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
 
                 return (
                   <article key={product.id} className="product-card">
+                    <ProductMedia product={product} />
+
                     <div className="product-card-header">
                       <span className="status-chip product-chip">{product.currency}</span>
                       <span className="section-label">{product.inventory_count} in stock</span>
@@ -350,7 +554,7 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
           )}
         </section>
 
-        <section className="panel panel-cart">
+        <section id="shop-cart" className="panel panel-cart scroll-mt-24">
           <div className="panel-header">
             <div>
               <p className="section-label">Cart</p>
@@ -416,7 +620,8 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
           )}
         </section>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -538,66 +743,113 @@ function SupportPage({
   );
 }
 
-function AdminLoginPage({ adminEmail, adminPassword, adminError, adminMessage, isAdminSubmitting, setAdminEmail, setAdminPassword, onSubmit, hasAdminSession, onClearSession }) {
+function AdminLoginPage({ adminUsername, adminPassword, adminError, adminMessage, isAdminSubmitting, setAdminUsername, setAdminPassword, onSubmit, hasAdminSession, onClearSession }) {
   return (
-    <main className="min-h-screen bg-auth-gradient px-5 py-10 text-ink sm:px-6 lg:px-8">
-      <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-2xl flex-col items-center justify-center gap-8">
-        <header className="space-y-4 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">YourCompany</p>
-          <h1 className="font-display text-5xl leading-none tracking-[-0.04em] text-slate-950 sm:text-6xl">
-            Admin login
-          </h1>
-          <p className="mx-auto max-w-xl text-lg text-slate-600">
-            Sign in with your admin account to manage the store
-          </p>
-        </header>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50 to-blue-100 px-4 py-10 sm:px-6 lg:px-8">
+      <AuthBackdrop admin />
+      <section className="relative mx-auto grid min-h-screen w-full max-w-6xl items-center gap-8 py-8 xl:grid-cols-[minmax(380px,0.95fr)_minmax(0,1.05fr)] xl:gap-10">
+        <div className="order-2 mx-auto grid w-full max-w-md gap-5 xl:order-1 xl:max-w-none">
+          <AuthCard className="w-full">
+            {adminError ? (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
+                {adminError}
+              </p>
+            ) : null}
 
-        <AuthCard className="w-full max-w-xl">
-          {adminError ? (
-            <p className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
-              {adminError}
+            {adminMessage ? (
+              <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">
+                {adminMessage}
+              </p>
+            ) : null}
+
+            <form className="grid gap-5" onSubmit={onSubmit}>
+              <AuthField
+                id="admin-login-username"
+                label="Username"
+                type="text"
+                placeholder="admin"
+                value={adminUsername}
+                onChange={(event) => setAdminUsername(event.target.value)}
+              />
+              <AuthField
+                id="admin-login-password"
+                label="Password"
+                type="password"
+                placeholder="Enter your password"
+                value={adminPassword}
+                onChange={(event) => setAdminPassword(event.target.value)}
+              />
+              <AuthButton type="submit" disabled={isAdminSubmitting}>
+                {isAdminSubmitting ? "Signing in..." : "Login to dashboard"}
+              </AuthButton>
+            </form>
+
+            <p className="text-center text-sm text-gray-500">
+              Admin access is restricted to authorized usernames only.
             </p>
-          ) : null}
 
-          {adminMessage ? (
-            <p className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-              {adminMessage}
-            </p>
-          ) : null}
+            {hasAdminSession ? (
+              <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+                <Link className="font-medium text-gray-900 transition duration-200 hover:text-blue-600" to="/admin/dashboard">
+                  Open dashboard
+                </Link>
+                <button
+                  type="button"
+                  className="font-medium text-gray-500 transition duration-200 hover:text-gray-900"
+                  onClick={onClearSession}
+                >
+                  Clear session
+                </button>
+              </div>
+            ) : null}
+          </AuthCard>
 
-          <form className="grid gap-5" onSubmit={onSubmit}>
-            <AuthField
-              id="admin-login-email"
-              label="Email"
-              type="email"
-              placeholder="admin@example.com"
-              value={adminEmail}
-              onChange={(event) => setAdminEmail(event.target.value)}
-            />
-            <AuthField
-              id="admin-login-password"
-              label="Password"
-              type="password"
-              placeholder="Enter your password"
-              value={adminPassword}
-              onChange={(event) => setAdminPassword(event.target.value)}
-            />
-            <AuthButton type="submit" disabled={isAdminSubmitting}>
-              {isAdminSubmitting ? "Signing in..." : "Login to dashboard"}
-            </AuthButton>
-          </form>
+          <div className="text-center text-sm text-gray-500 xl:text-left">
+            Need help?{" "}
+            <a
+              className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
+              href={supportEmail}
+            >
+              Contact support
+            </a>
+          </div>
+        </div>
 
-          {hasAdminSession ? (
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
-              <Link className="font-semibold text-slate-700 hover:text-slate-950" to="/admin/dashboard">
-                Open dashboard
-              </Link>
-              <button type="button" className="font-semibold text-slate-500 hover:text-slate-900" onClick={onClearSession}>
-                Clear session
-              </button>
-            </div>
-          ) : null}
-        </AuthCard>
+        <div className="order-1 grid gap-8 xl:order-2">
+          <div className="grid gap-6">
+            <LogoMark />
+
+            <header className="grid gap-4 text-center xl:text-left">
+              <h1 className="mx-auto max-w-[14ch] text-3xl font-semibold leading-tight text-gray-900 sm:text-4xl xl:mx-0 xl:max-w-none xl:whitespace-nowrap">
+                Admin access portal
+              </h1>
+              <p className="mx-auto max-w-xl text-base leading-7 text-gray-500 xl:mx-0">
+                Sign in with your admin username to manage protected workflows, product publishing, and platform visibility.
+              </p>
+            </header>
+          </div>
+
+          <AuthPromoPanel
+            admin
+            eyebrow="Controlled Workspace"
+            title="A cleaner gate for privileged actions."
+            description="The admin experience keeps the same OPSDEV visual language, but with a sharper operational tone for restricted access."
+            bullets={[
+              {
+                title: "Username-only admin access",
+                copy: "The dashboard path is tuned for operational control and avoids the public login pattern.",
+              },
+              {
+                title: "Consistent product identity",
+                copy: "Admin screens now feel like part of the same platform instead of a separate utility page.",
+              },
+              {
+                title: "Sharper hierarchy",
+                copy: "Brand, message, and action areas are separated more clearly for a more premium first impression.",
+              },
+            ]}
+          />
+        </div>
       </section>
     </main>
   );
@@ -612,27 +864,46 @@ function AdminDashboardPage({
   adminMessage,
   isAdminLoading,
   isAdminSubmitting,
+  isImageUploading,
   onFieldChange,
   onCreateProduct,
+  onUploadProductImage,
   onToggleProductStatus,
   onDeleteProduct,
   onLogout,
 }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <main className="app-shell">
+    <>
+      <WorkspaceSidebar
+        badge="Operations"
+        title="OPSDEV Admin"
+        description="Use the left workspace rail to move through admin actions the way a proper application shell should behave."
+        stats={[
+          { label: "Total Products", value: adminOverview?.product_counts?.total ?? "..." },
+          { label: "Active", value: adminOverview?.product_counts?.active ?? "..." },
+          { label: "Feedback", value: adminFeedback.length },
+        ]}
+        links={[
+          { label: "Back to shop", to: "/shop" },
+          { label: "Create product", href: "#admin-create" },
+          { label: "Overview", href: "#admin-overview" },
+          { label: "Catalog", href: "#admin-products" },
+          { label: "Inbox", href: "#admin-feedback" },
+        ]}
+        actions={[
+          { label: "Log out", onClick: onLogout, tone: "danger" },
+        ]}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen((current) => !current)}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
+      <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[20.5rem]" : "lg:pl-24"}`}>
       <AppHeader
         title="Manage the protected admin dashboard."
         description="This route is reserved for admins only and uses the stored admin JWT to load product and system data."
-        actions={
-          <>
-            <Link className="secondary-button button-link" to="/shop">
-              Shop
-            </Link>
-            <button type="button" className="secondary-button" onClick={onLogout}>
-              Log out
-            </button>
-          </>
-        }
       />
 
       <section className="page-panel panel panel-admin">
@@ -655,7 +926,7 @@ function AdminDashboardPage({
         {adminMessage ? <p className="success-message">{adminMessage}</p> : null}
 
         <div className="admin-grid">
-          <section className="admin-card">
+          <section id="admin-create" className="admin-card scroll-mt-24">
             <div className="panel-header">
               <div>
                 <p className="section-label">Create</p>
@@ -713,6 +984,27 @@ function AdminDashboardPage({
                 onChange={(event) => onFieldChange("image_url", event.target.value)}
               />
 
+              <label className="grid gap-2 text-sm font-medium text-slate-700">
+                <span>Upload image</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
+                  onChange={(event) => onUploadProductImage(event.target.files?.[0] || null)}
+                  disabled={isImageUploading || isAdminSubmitting}
+                />
+              </label>
+
+              {adminForm.image_url ? (
+                <div className="admin-upload-preview">
+                  <img src={adminForm.image_url} alt="Product preview" className="h-full w-full object-cover" />
+                </div>
+              ) : null}
+
+              {isImageUploading ? (
+                <p className="text-sm text-slate-500">Uploading image...</p>
+              ) : null}
+
               <label className="checkbox-row">
                 <input
                   type="checkbox"
@@ -728,7 +1020,7 @@ function AdminDashboardPage({
             </form>
           </section>
 
-          <section className="admin-card">
+          <section id="admin-overview" className="admin-card scroll-mt-24">
             <div className="panel-header">
               <div>
                 <p className="section-label">Overview</p>
@@ -773,7 +1065,7 @@ function AdminDashboardPage({
           </section>
         </div>
 
-        <section className="admin-card admin-products-card">
+        <section id="admin-products" className="admin-card admin-products-card scroll-mt-24">
           <div className="panel-header">
             <div>
               <p className="section-label">Catalog</p>
@@ -824,7 +1116,7 @@ function AdminDashboardPage({
           )}
         </section>
 
-        <section className="admin-card admin-products-card">
+        <section id="admin-feedback" className="admin-card admin-products-card scroll-mt-24">
           <div className="panel-header">
             <div>
               <p className="section-label">Support Inbox</p>
@@ -852,7 +1144,8 @@ function AdminDashboardPage({
           )}
         </section>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -865,7 +1158,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState("login");
   const [userToken, setUserToken] = useState(() => readToken(AUTH_TOKEN_STORAGE_KEY));
   const [adminToken, setAdminToken] = useState(() => readToken(ADMIN_TOKEN_STORAGE_KEY));
-  const [adminEmail, setAdminEmail] = useState("admin@example.com");
+  const [adminUsername, setAdminUsername] = useState("admin");
   const [adminPassword, setAdminPassword] = useState("change-me-too");
   const [adminOverview, setAdminOverview] = useState(null);
   const [adminProducts, setAdminProducts] = useState([]);
@@ -875,6 +1168,7 @@ export default function App() {
   const [adminMessage, setAdminMessage] = useState("");
   const [isAdminLoading, setIsAdminLoading] = useState(false);
   const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
   const [feedbackSuccess, setFeedbackSuccess] = useState("");
@@ -1023,7 +1317,7 @@ export default function App() {
     setAdminMessage("");
 
     try {
-      const data = await loginUser({ email: adminEmail.trim().toLowerCase(), password: adminPassword });
+      const data = await loginUser({ identifier: adminUsername.trim().toLowerCase(), password: adminPassword });
       if (!hasRole(data.access_token, "admin")) {
         throw new Error("This account does not have admin access.");
       }
@@ -1056,6 +1350,45 @@ export default function App() {
     setAdminMessage("Admin session cleared.");
     setAdminError("");
     navigate("/admin", { replace: true });
+  }
+
+  async function handleUploadProductImage(file) {
+    if (!file) {
+      return;
+    }
+
+    setIsImageUploading(true);
+    setAdminError("");
+    setAdminMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(`${API_URL}/v1/products/upload-image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to upload image.");
+      }
+
+      const data = await response.json();
+      setAdminForm((current) => ({
+        ...current,
+        image_url: data.image_url || "",
+      }));
+      setAdminMessage("Image uploaded and attached to the product form.");
+    } catch (err) {
+      setAdminError(err.message || "Failed to upload image.");
+    } finally {
+      setIsImageUploading(false);
+    }
   }
 
   async function handleSubmitFeedback(event) {
@@ -1375,12 +1708,12 @@ export default function App() {
         path="/admin"
         element={
           <AdminLoginPage
-            adminEmail={adminEmail}
+            adminUsername={adminUsername}
             adminPassword={adminPassword}
             adminError={adminError}
             adminMessage={adminMessage}
             isAdminSubmitting={isAdminSubmitting}
-            setAdminEmail={setAdminEmail}
+            setAdminUsername={setAdminUsername}
             setAdminPassword={setAdminPassword}
             onSubmit={handleAdminLogin}
             hasAdminSession={hasAdminSession}
@@ -1401,8 +1734,10 @@ export default function App() {
               adminMessage={adminMessage}
               isAdminLoading={isAdminLoading}
               isAdminSubmitting={isAdminSubmitting}
+              isImageUploading={isImageUploading}
               onFieldChange={(field, value) => setAdminForm((current) => ({ ...current, [field]: value }))}
               onCreateProduct={handleCreateProduct}
+              onUploadProductImage={handleUploadProductImage}
               onToggleProductStatus={toggleProductStatus}
               onDeleteProduct={handleDeleteProduct}
               onLogout={handleAdminLogout}

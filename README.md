@@ -171,6 +171,29 @@ For cart-specific manual checks, use:
 
 - [docs/phase3-manual-checklist.md](/home/alagbaski/Documents/DevOps/devops-fullstack-platform/docs/phase3-manual-checklist.md)
 
+## Quality Checks
+
+The repository now includes a dedicated CI quality workflow in
+[.github/workflows/quality.yml](/home/alagbaski/Documents/DevOps/devops-fullstack-platform/.github/workflows/quality.yml).
+
+It runs:
+
+- backend tests with coverage
+- `ruff` lint checks
+- frontend dependency install and production build
+- SonarQube analysis when GitHub secrets are configured
+
+To enable SonarQube scanning in GitHub Actions, add these repository secrets:
+
+- `SONAR_HOST_URL`
+  Your SonarQube server URL
+
+- `SONAR_TOKEN`
+  A token with permission to analyze this project
+
+Project analysis settings live in
+[sonar-project.properties](/home/alagbaski/Documents/DevOps/devops-fullstack-platform/sonar-project.properties).
+
 ## Notes
 
 - Public UI pages intentionally avoid linking users directly to raw backend endpoints.

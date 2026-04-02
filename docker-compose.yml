@@ -58,8 +58,12 @@ services:
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-too}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@example.com}
+      MEDIA_ROOT: ${MEDIA_ROOT:-/app/media}
+    volumes:
+      - backend_media:/app/media
     networks:
       - platform
 
@@ -106,7 +110,7 @@ services:
       - frontend
     networks:
       - platform
-  
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -148,6 +152,7 @@ services:
 
 volumes:
   db_data:
+  backend_media:
 
 networks:
   platform:
