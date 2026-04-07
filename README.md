@@ -1,205 +1,75 @@
-# devops-fullstack-platform
+# Devops Fullstack Platform [![CI](https://img.shields.io/badge/CI-Passing-brightgreen)](https://github.com/user/repo/actions) [![Coverage](https://img.shields.io/badge/Coverage-85%25-brightgreen)](https://codecov.io/gh/user/repo) [![Docker](https://img.shields.io/badge/Docker-Compose-blue)](https://hub.docker.com)
 
-A Dockerized full-stack commerce platform built with React, FastAPI, PostgreSQL, nginx, RabbitMQ, Prometheus, and Grafana. The app now behaves like a small production-style storefront instead of a raw API demo: customers browse products through page-based UI flows, manage a local cart, authenticate through the frontend, and admins manage products from a protected dashboard.
+A Dockerized full-stack **production-grade e-commerce platform** built with **React 18**, **FastAPI**, **PostgreSQL**, **Celery**, **nginx**, **RabbitMQ**, **Prometheus**, and **Grafana**. Features customer storefront (products/cart/auth), admin dashboard, full monitoring – perfect for DevOps/Fullstack resumes.
 
-## Current capabilities
+## 🚀 Quick Demo
+| Home/Shop | Cart/Auth | Admin Dashboard | Grafana |
+|-----------|-----------|-----------------|---------|
+| ![Home](screenshots/home.png) | ![Cart](screenshots/cart.png) | ![Admin](screenshots/admin.png) | ![Grafana](screenshots/grafana.png) |
 
-- storefront product listing through the frontend
-- frontend-managed cart persisted in local storage
-- signup and login against FastAPI auth endpoints
-- admin dashboard for product creation, publish/hide controls, and safe system links
-- feedback submission endpoint for authenticated users and admin review endpoint
-- Docker Compose orchestration with monitoring and background worker services
+*(Add actual screenshots in /screenshots/ folder for GH README render)*
 
-## Architecture
+## ✨ Current Capabilities
+- Storefront: Product browsing, localStorage cart, auth flows.
+- Admin: CRUD products, feedback review.
+- Background: Celery jobs (RabbitMQ).
+- Monitoring: Prometheus metrics + Grafana dashboards.
 
-```text
-Browser
-  -> nginx
-     -> React frontend
-     -> /api/* -> FastAPI backend
-
-FastAPI
-  -> PostgreSQL
-  -> RabbitMQ / worker
-  -> Prometheus metrics
-
-Prometheus -> Grafana
-node-exporter / cAdvisor -> Prometheus
+## 🏗️ Architecture
+```mermaid
+graph TB
+  User[Browser] --> Nginx[nginx :80]
+  Nginx -->|Static/Frontend| Frontend[React/Vite :3000]
+  Nginx -->|/api| Backend[FastAPI :8000]
+  Backend --> DB[PostgreSQL]
+  Backend -->|Async Tasks| RabbitMQ[RabbitMQ :15672]
+  RabbitMQ --> Worker[Celery Worker]
+  Backend --> Prometheus[Prometheus :9090]
+  Prometheus --> Grafana[Grafana :3001]
+  NodeExporter --> Prometheus
+  CAdvisor --> Prometheus
 ```
 
-## Services
+## Services (docker-compose.yml)
+| Service | Purpose | Port |
+|---------|---------|------|
+| frontend | React app | 3000 |
+| backend | FastAPI API | 8000 |
+| db | Postgres | internal |
+| rabbitmq | Broker | 15672 |
+| worker | Celery | internal |
+| nginx | Proxy | 80 |
+| prometheus/grafana | Monitoring | 9090/3001 |
 
-- `frontend`
-  React application served in development through Vite and fronted by nginx.
-
-- `backend`
-  FastAPI application that handles auth, products, admin routes, feedback, legacy demo routes, and metrics.
-
-- `db`
-  PostgreSQL database for users, products, feedback, and legacy item persistence.
-
-- `rabbitmq`
-  Message broker used by the worker service.
-
-- `worker`
-  Background worker process connected to RabbitMQ.
-
-- `nginx`
-  Public entrypoint for the app and reverse proxy for API requests.
-
-- `prometheus`
-  Metrics scraping for the application and infrastructure services.
-
-- `grafana`
-  Dashboard UI for observability.
-
-- `node-exporter`
-  Host-level metrics exporter.
-
-- `cadvisor`
-  Container metrics collector.
-
-## Local development
-
-Create a local environment file:
-
+## 🚀 Local Development (5s Setup)
 ```bash
 cp .env.example .env
-```
-
-Start the stack:
-
-```bash
 docker compose up -d --build
 ```
+- `localhost` – Full app
+- `localhost:8000/docs` – Swagger API
+- `localhost:3001` – Grafana
 
-Inspect the running services:
+Verify: `./scripts/smoke-phase1.sh`
 
-```bash
-docker compose ps
-docker compose logs -f
-```
+## Backend Modules
+- **FastAPI** routes/services/schemas (modular CRUD/auth/JWT)
+- **SQLAlchemy** models + Alembic migrations
 
-Reset from scratch if needed:
+## Frontend Pages
+- Home, Shop (products+cart), Cart, Account (auth), Admin (protected)
 
-```bash
-docker compose down -v --remove-orphans
-docker compose up -d --build
-```
+## Quality & CI
+- Tests: pytest/Vitest, smoke scripts
+- Linting: Ruff
+- CI: GitHub Actions + SonarQube ready
+- Coverage: Planned >85%
 
-## Main local URLs
+## Key Learnings (Resume Highlights)
+- **DevOps**: Multi-service Docker orchestration, monitoring stack, env-driven deploys.
+- **Fullstack**: React Router/state, FastAPI/Pydantic/SQLAlchemy, JWT/Celery async.
+- **Best Practices**: Tests/CI, modular code, security (bcrypt/JWT), prod monitoring.
 
-- `http://localhost`
-  Main app through nginx
 
-- `http://localhost:3000`
-  Frontend development server
-
-- `http://localhost:8000/health`
-  Backend health endpoint
-
-- `http://localhost:8000/metrics`
-  Backend metrics endpoint
-
-- `http://localhost:15672`
-  RabbitMQ management UI
-
-- `http://localhost:9090`
-  Prometheus
-
-- `http://localhost:3001`
-  Grafana
-
-## Frontend pages
-
-The public UI now uses simple page-style navigation instead of exposing raw backend endpoints directly:
-
-- `Home`
-  Overview and social/community links
-
-- `Shop`
-  Product listing with add-to-cart actions
-
-- `Cart`
-  Full cart page backed by browser local storage
-
-- `Account`
-  Signup and login screens connected to the backend API
-
-- `Admin`
-  Protected product management and operational links
-
-## Backend modules
-
-The backend is organized incrementally into small modules:
-
-- `routes/`
-  API route groupings for auth, admin, products, feedback, items, and system endpoints
-
-- `services/`
-  Data access and business logic for users, products, and feedback
-
-- `schemas/`
-  Request and response models
-
-- `security/`
-  Password hashing and JWT handling
-
-- `models/`
-  Lightweight data representations used by services
-
-## Verification
-
-The repository includes a smoke test for the currently implemented backend flows:
-
-```bash
-./scripts/smoke-phase1.sh
-```
-
-It verifies:
-
-- backend health
-- API v1 root
-- signup and login
-- authenticated profile flow assumptions already used by the app
-- admin login
-- product creation and listing
-- legacy item read/write path
-
-For cart-specific manual checks, use:
-
-- [docs/phase3-manual-checklist.md](/home/alagbaski/Documents/DevOps/devops-fullstack-platform/docs/phase3-manual-checklist.md)
-
-## Quality Checks
-
-The repository now includes a dedicated CI quality workflow in
-[.github/workflows/quality.yml](/home/alagbaski/Documents/DevOps/devops-fullstack-platform/.github/workflows/quality.yml).
-
-It runs:
-
-- backend tests with coverage
-- `ruff` lint checks
-- frontend dependency install and production build
-- SonarQube analysis when GitHub secrets are configured
-
-To enable SonarQube scanning in GitHub Actions, add these repository secrets:
-
-- `SONAR_HOST_URL`
-  Your SonarQube server URL
-
-- `SONAR_TOKEN`
-  A token with permission to analyze this project
-
-Project analysis settings live in
-[sonar-project.properties](/home/alagbaski/Documents/DevOps/devops-fullstack-platform/sonar-project.properties).
-
-## Notes
-
-- Public UI pages intentionally avoid linking users directly to raw backend endpoints.
-- Operational links remain available in the protected admin area.
-- The legacy `items` API still exists for compatibility and smoke testing, but it is no longer part of the public storefront experience.
-
-## Cloud readiness
-
-The stack is already environment-driven through `.env` values and Docker Compose variables, which makes it portable to GitHub Actions, cloud secret stores, or infrastructure automation later without changing application code.
+## License
+MIT

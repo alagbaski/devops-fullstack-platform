@@ -34,3 +34,26 @@ def send_email(to_email, reply_to="", subject="", message=""):
         smtp.send_message(email_message)
 
     return {"sent": True, "recipient": to_email}
+
+
+@celery.task(name="tasks.send_welcome_email")
+def send_welcome_email(to_email, username):
+    """Mock welcome email side effect for new signups."""
+    print(f"[welcome email queued] to={to_email} username={username}")
+    return {"sent": True, "recipient": to_email, "username": username}
+
+
+@celery.task(name="tasks.log_signup_analytics")
+def log_signup_analytics(user_id, email, username, role="customer"):
+    """Mock signup analytics event logging."""
+    print(
+        f"[analytics] event=user_signup user_id={user_id} email={email} username={username} role={role}"
+    )
+    return {
+        "logged": True,
+        "event": "user_signup",
+        "user_id": user_id,
+        "email": email,
+        "username": username,
+        "role": role,
+    }

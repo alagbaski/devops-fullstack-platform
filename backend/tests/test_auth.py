@@ -10,7 +10,13 @@ from .conftest import sample_user_response
 
 def test_signup_success(monkeypatch: pytest.MonkeyPatch):
     user = sample_user_response()
+    queued_jobs = []
     monkeypatch.setattr(auth_routes, "create_user", lambda email, username, password: user)
+    monkeypatch.setattr(
+        auth_routes,
+        "queue_signup_jobs",
+        lambda queued_user: queued_jobs.append(queued_user),
+    )
 
     data = auth_routes.signup(
         auth_routes.SignupRequest(
@@ -24,6 +30,7 @@ def test_signup_success(monkeypatch: pytest.MonkeyPatch):
     assert "id" in data
     assert "created_at" in data
     assert "updated_at" in data
+    assert queued_jobs == [user]
 
 
 def test_signup_duplicate_email(monkeypatch: pytest.MonkeyPatch):
@@ -31,6 +38,7 @@ def test_signup_duplicate_email(monkeypatch: pytest.MonkeyPatch):
         raise EntityAlreadyExistsException("Email is already registered")
 
     monkeypatch.setattr(auth_routes, "create_user", _raise_duplicate)
+    monkeypatch.setattr(auth_routes, "queue_signup_jobs", lambda user: None)
 
     with pytest.raises(HTTPException) as exc_info:
         auth_routes.signup(
@@ -43,6 +51,26 @@ def test_signup_duplicate_email(monkeypatch: pytest.MonkeyPatch):
 
     assert exc_info.value.status_code == 400
     assert "already registered" in exc_info.value.detail.lower()
+
+
+def test_signup_succeeds_when_background_jobs_fail(monkeypatch: pytest.MonkeyPatch):
+    user = sample_user_response()
+    monkeypatch.setattr(auth_routes, "create_user", lambda email, username, password: user)
+
+    def _raise_enqueue_error(queued_user):
+        raise RuntimeError("broker unavailable")
+
+    monkeypatch.setattr(auth_routes, "queue_signup_jobs", _raise_enqueue_error)
+
+    data = auth_routes.signup(
+        auth_routes.SignupRequest(
+            email="test@example.com",
+            username="testuser",
+            password="testpass123",
+        )
+    )
+
+    assert data == user
 
 
 def test_login_success(monkeypatch: pytest.MonkeyPatch):
