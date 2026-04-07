@@ -4,6 +4,7 @@ Main Application Entrypoint
 Constructs the FastAPI instance, configures telemetry (Prometheus),
 mounts static media directories, and registers all API routes.
 """
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator

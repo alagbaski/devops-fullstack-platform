@@ -5,6 +5,7 @@ This module handles user identity operations: signing up new accounts,
 exchanging credentials for JWT tokens (login), and retrieving the
 currently authenticated user's profile.
 """
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,7 +22,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 def signup(payload: SignupRequest):
     """
     Register a new user.
@@ -33,10 +36,14 @@ def signup(payload: SignupRequest):
         try:
             queue_signup_jobs(user)
         except Exception:
-            logger.exception("Failed to enqueue signup background jobs for user_id=%s", user["id"])
+            logger.exception(
+                "Failed to enqueue signup background jobs for user_id=%s", user["id"]
+            )
         return user
     except (ValidationException, EntityAlreadyExistsException) as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -62,7 +69,7 @@ def login(payload: LoginRequest):
 def read_current_user(current_user=Depends(get_current_user)):
     """
     Retrieve the profile of the user associated with the provided JWT.
-    The 'get_current_user' dependency handles token validation and 
+    The 'get_current_user' dependency handles token validation and
     database lookup automatically.
     """
     return current_user

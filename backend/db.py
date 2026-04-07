@@ -2,9 +2,10 @@
 Database Utility Module
 
 Handles the connection to PostgreSQL and initializes the database schema.
-Includes helper functions for username normalization and ensures that an 
+Includes helper functions for username normalization and ensures that an
 initial admin account is created based on environment variables.
 """
+
 import time
 from contextlib import closing
 
@@ -24,7 +25,9 @@ from security.passwords import hash_password
 
 def normalize_username(value: str) -> str:
     """Removes non-alphanumeric characters and lowercases the username."""
-    normalized = "".join(char for char in value.strip().lower() if char.isalnum() or char == "_")
+    normalized = "".join(
+        char for char in value.strip().lower() if char.isalnum() or char == "_"
+    )
     return normalized or "user"
 
 
@@ -37,7 +40,7 @@ def ensure_unique_username(
     cur, desired_username: str, *, exclude_user_id: int | None = None
 ) -> str:
     """
-    Checks if a username exists in the database. If it does, appends a 
+    Checks if a username exists in the database. If it does, appends a
     numeric suffix until a unique name is found (e.g., 'admin', 'admin2').
     """
     candidate = normalize_username(desired_username)
@@ -62,8 +65,8 @@ def ensure_unique_username(
 def get_conn():
     """
     Creates a connection to PostgreSQL.
-    
-    Includes a retry loop to handle "race conditions" where the backend 
+
+    Includes a retry loop to handle "race conditions" where the backend
     might start up faster than the database container is ready to accept connections.
     """
     retries = 10
@@ -87,7 +90,7 @@ def get_conn():
 
 def initialize_database() -> None:
     """
-    Idempotent database setup. 
+    Idempotent database setup.
     Creates tables, indexes, and an initial admin user if they don't exist.
     """
     with closing(get_conn()) as conn:
@@ -112,13 +115,17 @@ def initialize_database() -> None:
             cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;")
 
             # Migration logic: Ensure all existing users have a non-null username
-            cur.execute("SELECT id, email FROM users WHERE username IS NULL OR username = '';")
+            cur.execute(
+                "SELECT id, email FROM users WHERE username IS NULL OR username = '';"
+            )
             missing_usernames = cur.fetchall()
             for user_id, email in missing_usernames:
                 username = ensure_unique_username(
                     cur, default_username_from_email(email), exclude_user_id=user_id
                 )
-                cur.execute("UPDATE users SET username = %s WHERE id = %s;", (username, user_id))
+                cur.execute(
+                    "UPDATE users SET username = %s WHERE id = %s;", (username, user_id)
+                )
 
             cur.execute("ALTER TABLE users ALTER COLUMN username SET NOT NULL;")
             cur.execute("""
@@ -170,7 +177,9 @@ def initialize_database() -> None:
                 admin_username = normalize_username(
                     ADMIN_USERNAME or default_username_from_email(ADMIN_EMAIL)
                 )
-                cur.execute("SELECT id FROM users WHERE email = %s;", (ADMIN_EMAIL.lower(),))
+                cur.execute(
+                    "SELECT id FROM users WHERE email = %s;", (ADMIN_EMAIL.lower(),)
+                )
                 existing_admin = cur.fetchone()
                 if existing_admin is None:
                     admin_username = ensure_unique_username(cur, admin_username)
@@ -192,6 +201,7 @@ def initialize_database() -> None:
                         cur, admin_username, exclude_user_id=admin_id
                     )
                     cur.execute(
-                        "UPDATE users SET username = %s WHERE id = %s;", (admin_username, admin_id)
+                        "UPDATE users SET username = %s WHERE id = %s;",
+                        (admin_username, admin_id),
                     )
         conn.commit()

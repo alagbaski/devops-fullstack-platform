@@ -4,6 +4,7 @@ Upload Service Module
 Handles the physical saving of uploaded files to the server's disk.
 Includes security checks for file extensions and MIME types.
 """
+
 from pathlib import Path
 from uuid import uuid4
 
@@ -20,7 +21,7 @@ ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 def save_product_image(upload: UploadFile) -> str:
     """
     Saves an uploaded image with a unique UUID filename.
-    
+
     - Validates file type and extension.
     - Creates the destination directory if missing.
     - Returns the public URL path for the image.

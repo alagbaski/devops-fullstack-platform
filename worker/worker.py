@@ -8,6 +8,4 @@ celery = Celery(
     include=["tasks"],
 )
 
-celery.conf.task_routes = {
-    "tasks.*": {"queue": "default"}
-}
+celery.conf.task_routes = {"tasks.*": {"queue": "default"}}
