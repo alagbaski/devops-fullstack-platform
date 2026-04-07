@@ -22,7 +22,9 @@ def test_list_active_products(monkeypatch: pytest.MonkeyPatch):
 def test_admin_products_returns_data(monkeypatch: pytest.MonkeyPatch):
     product = sample_product_response()
     monkeypatch.setattr(product_routes, "list_products_for_admin", lambda: [product])
-    data = product_routes.get_admin_products({"email": "admin@example.com", "role": "admin"})
+    data = product_routes.get_admin_products(
+        {"email": "admin@example.com", "role": "admin"}
+    )
     assert data[0]["slug"] == product["slug"]
 
 

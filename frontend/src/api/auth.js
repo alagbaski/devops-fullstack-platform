@@ -1,8 +1,8 @@
 /**
  * Authentication API Utilities
- * 
+ *
  * This file centralizes all network calls related to authentication.
- * It handles the 'fetch' logic, error formatting for FastAPI's 
+ * It handles the 'fetch' logic, error formatting for FastAPI's
  * validation errors, and local storage persistence for JWT tokens.
  */
 
@@ -50,7 +50,7 @@ function formatErrorDetail(detail) {
 }
 
 async function parseResponse(response) {
-  // Helper to parse JSON and throw a formatted error if the 
+  // Helper to parse JSON and throw a formatted error if the
   // HTTP status code indicates failure (not in 200-299 range).
   const data = await response.json().catch(() => ({}));
 

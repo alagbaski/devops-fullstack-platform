@@ -1,7 +1,7 @@
 /**
  * LoginPage Component
- * 
- * Handles the user login form, input validation, and 
+ *
+ * Handles the user login form, input validation, and
  * execution of the login API call.
  */
 import { useState } from "react";

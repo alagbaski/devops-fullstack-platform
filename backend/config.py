@@ -8,6 +8,7 @@ from the environment, providing sensible defaults where appropriate.
 Values are typically loaded from a `.env` file in local development
 or injected as environment variables in production environments.
 """
+
 import os
 from pathlib import Path
 

@@ -23,7 +23,9 @@ def send_email(to_email, reply_to="", subject="", message=""):
     email_message.set_content(message)
 
     if not smtp_host:
-        print(f"[email skipped] to={to_email} subject={email_message['Subject']} reply_to={reply_to}")
+        print(
+            f"[email skipped] to={to_email} subject={email_message['Subject']} reply_to={reply_to}"
+        )
         return {"sent": False, "reason": "smtp_not_configured"}
 
     with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as smtp:

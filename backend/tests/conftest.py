@@ -3,7 +3,9 @@
 from datetime import datetime, timezone
 
 
-def sample_user_response(email: str = "test@example.com", username: str = "testuser") -> dict:
+def sample_user_response(
+    email: str = "test@example.com", username: str = "testuser"
+) -> dict:
     now = datetime.now(timezone.utc)
     return {
         "id": 1,

@@ -1,4 +1,5 @@
 """Tests for auth routes."""
+
 import pytest
 from fastapi import HTTPException
 
@@ -11,7 +12,9 @@ from .conftest import sample_user_response
 def test_signup_success(monkeypatch: pytest.MonkeyPatch):
     user = sample_user_response()
     queued_jobs = []
-    monkeypatch.setattr(auth_routes, "create_user", lambda email, username, password: user)
+    monkeypatch.setattr(
+        auth_routes, "create_user", lambda email, username, password: user
+    )
     monkeypatch.setattr(
         auth_routes,
         "queue_signup_jobs",
@@ -55,7 +58,9 @@ def test_signup_duplicate_email(monkeypatch: pytest.MonkeyPatch):
 
 def test_signup_succeeds_when_background_jobs_fail(monkeypatch: pytest.MonkeyPatch):
     user = sample_user_response()
-    monkeypatch.setattr(auth_routes, "create_user", lambda email, username, password: user)
+    monkeypatch.setattr(
+        auth_routes, "create_user", lambda email, username, password: user
+    )
 
     def _raise_enqueue_error(queued_user):
         raise RuntimeError("broker unavailable")
@@ -96,10 +101,14 @@ def test_login_success(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_login_invalid(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(auth_routes, "authenticate_user", lambda identifier, password: None)
+    monkeypatch.setattr(
+        auth_routes, "authenticate_user", lambda identifier, password: None
+    )
 
     with pytest.raises(HTTPException) as exc_info:
-        auth_routes.login(auth_routes.LoginRequest(identifier="invaliduser", password="wrongpass"))
+        auth_routes.login(
+            auth_routes.LoginRequest(identifier="invaliduser", password="wrongpass")
+        )
 
     assert exc_info.value.status_code == 401
     assert "invalid email/username or password" in exc_info.value.detail.lower()

@@ -1,6 +1,6 @@
 /**
  * SignupPage Component
- * 
+ *
  * Manages user registration, password confirmation matching,
  * and interaction with the signup API endpoint.
  */

@@ -4,6 +4,7 @@ User Service Module
 Handles business logic for user management, including registration,
 normalization of identifiers, and authentication flows.
 """
+
 from contextlib import closing
 
 from db import get_conn
@@ -22,10 +23,12 @@ def _normalize_username(username: str) -> str:
     return username.strip().lower()
 
 
-def create_user(email: str, username: str, password: str, role: str = "customer") -> dict:
+def create_user(
+    email: str, username: str, password: str, role: str = "customer"
+) -> dict:
     """
     Registers a new user in the database.
-    
+
     - Performs uniqueness checks on email and username.
     - Hashes the password before storage for security.
     - Returns the public user profile (excluding sensitive fields).
@@ -43,7 +46,9 @@ def create_user(email: str, username: str, password: str, role: str = "customer"
             if cur.fetchone() is not None:
                 raise EntityAlreadyExistsException("Email is already registered")
 
-            cur.execute("SELECT id FROM users WHERE username = %s;", (normalized_username,))
+            cur.execute(
+                "SELECT id FROM users WHERE username = %s;", (normalized_username,)
+            )
             if cur.fetchone() is not None:
                 raise EntityAlreadyExistsException("Username is already taken")
 
@@ -97,8 +102,8 @@ def get_user_by_identifier(identifier: str):
 def authenticate_user(identifier: str, password: str):
     """
     Verifies user credentials.
-    
-    Returns the public user data if the password matches the stored hash, 
+
+    Returns the public user data if the password matches the stored hash,
     otherwise returns None.
     """
     user = get_user_by_identifier(identifier)

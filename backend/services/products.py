@@ -8,12 +8,17 @@ and retrieve product-related information.
 The `closing` context manager ensures that database connections are properly
 closed after use, even if errors occur.
 """
+
 from contextlib import closing
 
 import psycopg2
 
 from db import get_conn
-from exceptions import EntityAlreadyExistsException, EntityNotFoundException, ValidationException
+from exceptions import (
+    EntityAlreadyExistsException,
+    EntityNotFoundException,
+    ValidationException,
+)
 from models.product import Product
 from schemas.products import ProductCreate, ProductUpdate
 
@@ -28,7 +33,7 @@ def list_active_products() -> list[dict]:
                 WHERE is_active = TRUE
                 ORDER BY created_at DESC;
                 """)
-            rows = cur.fetchall() # Fetch all results from the query
+            rows = cur.fetchall()  # Fetch all results from the query
 
     # Convert database rows into a list of Product response dictionaries
     return [_row_to_product(row) for row in rows]
@@ -115,9 +120,11 @@ def create_product(payload: ProductCreate) -> dict:
                 )
                 row = cur.fetchone()
             except psycopg2.errors.UniqueViolation as exc:
-                conn.rollback() # Rollback the transaction on unique constraint violation
-                raise EntityAlreadyExistsException("Product slug already exists") from exc
-        conn.commit() # Commit the transaction if successful
+                conn.rollback()  # Rollback the transaction on unique constraint violation
+                raise EntityAlreadyExistsException(
+                    "Product slug already exists"
+                ) from exc
+        conn.commit()  # Commit the transaction if successful
 
     # Convert the newly created product's row to a response dictionary
     return _row_to_product(row)
