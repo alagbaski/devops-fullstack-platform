@@ -1,4 +1,16 @@
-export default function AuthButton({ children, variant = "primary", className = "", ...props }) {
+import * as React from "react";
+import { ButtonHTMLAttributes } from "react";
+
+export interface AuthButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary";
+}
+
+export default function AuthButton({
+  children,
+  variant = "primary",
+  className = "",
+  ...props
+}: AuthButtonProps) {
   const classes = [
     "w-full rounded-lg px-4 py-2.5 text-sm font-semibold shadow-md transition duration-200 disabled:cursor-wait disabled:opacity-70",
     variant === "secondary"

@@ -1,13 +1,15 @@
+/// <reference types="@testing-library/jest-dom/vitest" />
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import App from "../src/App";
 
-function mockJsonResponse(data, ok = true) {
+function mockJsonResponse(data: any, ok: boolean = true) {
   return Promise.resolve({
     ok,
     json: () => Promise.resolve(data),
-  });
+  } as Response);
 }
 
 describe("App", () => {

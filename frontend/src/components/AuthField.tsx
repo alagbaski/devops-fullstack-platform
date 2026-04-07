@@ -1,4 +1,12 @@
-export default function AuthField({ label, id, ...props }) {
+import * as React from "react";
+import { InputHTMLAttributes } from "react";
+
+export interface AuthFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  id: string;
+}
+
+export default function AuthField({ label, id, ...props }: AuthFieldProps) {
   return (
     <label className="grid gap-2" htmlFor={id}>
       <span className="text-sm font-medium text-gray-900">{label}</span>
