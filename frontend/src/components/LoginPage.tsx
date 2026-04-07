@@ -4,22 +4,27 @@
  * Handles the user login form, input validation, and
  * execution of the login API call.
  */
-import { useState } from "react";
+import React, { useState, FormEvent } from "react";
 
 import AuthButton from "./AuthButton";
 import AuthField from "./AuthField";
-import { loginUser } from "../api/auth";
+import { loginUser, AuthResponse } from "../api/auth";
+
+interface LoginPageProps {
+  onSuccess?: (data: AuthResponse) => void;
+  onSwitch: () => void;
+}
 
 // onSuccess: Callback triggered after valid login
 // onSwitch: Callback to toggle to the Signup view
-export default function LoginPage({ onSuccess, onSwitch }) {
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function LoginPage({ onSuccess, onSwitch }: LoginPageProps) {
+  const [identifier, setIdentifier] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Basic frontend validation before hitting the server
-  async function handleSubmit(event) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalizedIdentifier = identifier.trim().toLowerCase();
 
@@ -40,7 +45,7 @@ export default function LoginPage({ onSuccess, onSwitch }) {
       // loginUser saves the token to localStorage automatically
       const data = await loginUser({ identifier: normalizedIdentifier, password });
       onSuccess?.(data);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || "Login failed.");
     } finally {
       setIsSubmitting(false);
@@ -50,7 +55,10 @@ export default function LoginPage({ onSuccess, onSwitch }) {
   return (
     <section className="grid gap-5">
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600" role="alert">
+        <p
+          className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
@@ -62,7 +70,9 @@ export default function LoginPage({ onSuccess, onSwitch }) {
           type="text"
           placeholder="Email/Username"
           value={identifier}
-          onChange={(event) => setIdentifier(event.target.value)}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            setIdentifier(event.target.value)
+          }
         />
         <AuthField
           id="user-login-password"
@@ -70,7 +80,9 @@ export default function LoginPage({ onSuccess, onSwitch }) {
           type="password"
           placeholder="Enter your password"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            setPassword(event.target.value)
+          }
         />
 
         <AuthButton type="submit" disabled={isSubmitting}>

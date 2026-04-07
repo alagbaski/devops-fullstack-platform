@@ -1,10 +1,11 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { AUTH_TOKEN_STORAGE_KEY, loginUser, signupUser } from "../src/api/auth";
 
-function jsonResponse({ ok = true, data = {} }) {
+function jsonResponse({ ok = true, data = {} }: { ok?: boolean; data?: any }) {
   return Promise.resolve({
     ok,
     json: () => Promise.resolve(data),
-  });
+  } as Response);
 }
 
 describe("auth api", () => {

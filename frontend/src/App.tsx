@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import * as React from "react";
+import { useEffect, useMemo, useState, ReactNode, FormEvent, ChangeEvent } from "react";
 import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
-import { AUTH_TOKEN_STORAGE_KEY, loginUser } from "./api/auth";
+import { AUTH_TOKEN_STORAGE_KEY, loginUser, AuthResponse } from "./api/auth";
 import AuthButton from "./components/AuthButton";
 import AuthCard from "./components/AuthCard";
 import AuthField from "./components/AuthField";
@@ -9,6 +10,43 @@ import LoginPage from "./components/LoginPage";
 import LogoMark from "./components/LogoMark";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignupPage from "./components/SignupPage";
+
+// Types & Interfaces
+export interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  price: string | number;
+  currency: string;
+  inventory_count: number;
+  image_url: string;
+  is_active: boolean;
+}
+
+export interface CartItem extends Pick<Product, "id" | "name" | "currency" | "inventory_count"> {
+  price: number;
+  quantity: number;
+}
+
+export interface AdminOverview {
+  product_counts: {
+    total: number;
+    active: number;
+    inactive: number;
+  };
+  system_links: {
+    label: string;
+    url: string;
+  }[];
+}
+
+export interface FeedbackEntry {
+  id: number;
+  user_id: number;
+  message: string;
+  created_at: string;
+}
 
 // Global Constants & Configuration
 const API_URL = "/api";
@@ -18,19 +56,19 @@ const ADMIN_TOKEN_STORAGE_KEY = "devops-platform-admin-token";
 const supportEmail = "mailto:support@example.com";
 
 // Default state for the product creation form
-const initialAdminForm = {
+const initialAdminForm: Omit<Product, "id"> = {
   name: "",
   slug: "",
   description: "",
   price: "19.99",
   currency: "USD",
-  inventory_count: "5",
+  inventory_count: 5,
   image_url: "",
   is_active: true,
 };
 
 // Helper: Safely read and parse JSON from browser localStorage
-function readLocalStorage(key, fallback) {
+function readLocalStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") {
     return fallback;
   }
@@ -44,7 +82,7 @@ function readLocalStorage(key, fallback) {
 }
 
 // Helper: Read a raw string token from localStorage
-function readToken(key) {
+function readToken(key: string): string {
   if (typeof window === "undefined") {
     return "";
   }
@@ -53,7 +91,7 @@ function readToken(key) {
 }
 
 // Helper: Manually decode a JWT payload (base64) without a heavy library
-function decodeTokenPayload(token) {
+function decodeTokenPayload(token: string | null): any {
   if (!token) {
     return null;
   }
@@ -69,19 +107,25 @@ function decodeTokenPayload(token) {
 }
 
 // Helper: Check if a JWT contains a specific user role
-function hasRole(token, expectedRole) {
+function hasRole(token: string | null, expectedRole: string): boolean {
   const payload = decodeTokenPayload(token);
   return payload?.role === expectedRole;
 }
 
 // Helper: Extract email from JWT payload for form pre-filling
-function getTokenEmail(token) {
+function getTokenEmail(token: string | null): string {
   const payload = decodeTokenPayload(token);
   return payload?.email || "";
 }
 
+interface AppHeaderProps {
+  title: string;
+  description: string;
+  actions?: ReactNode;
+}
+
 // UI Component: Simple page header with title and intro text
-function AppHeader({ title, description, actions }) {
+function AppHeader({ title, description, actions }: AppHeaderProps) {
   return (
     <section className="hero-card panel">
       <div className="hero-copy">
@@ -95,6 +139,18 @@ function AppHeader({ title, description, actions }) {
   );
 }
 
+interface WorkspaceSidebarProps {
+  badge: string;
+  title: string;
+  description: string;
+  stats?: { label: string; value: string | number }[];
+  links?: ({ label: string; href: string } | { label: string; to: string })[];
+  actions?: { label: string; onClick: () => void; tone?: "primary" | "danger" }[];
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+}
+
 // UI Component: A sophisticated slide-out menu used for Shop and Admin navigation
 function WorkspaceSidebar({
   badge,
@@ -106,13 +162,13 @@ function WorkspaceSidebar({
   isOpen,
   onToggle,
   onClose,
-}) {
+}: WorkspaceSidebarProps) {
   useEffect(() => {
     if (!isOpen) {
       return undefined;
     }
 
-    function handleKeyDown(event) {
+    function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
       }
@@ -173,7 +229,7 @@ function WorkspaceSidebar({
             {links.length ? (
               <div className="grid gap-2">
                 {links.map((link) =>
-                  link.href ? (
+                  "href" in link ? (
                     <a
                       key={link.label}
                       className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition duration-200 hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white"
@@ -222,8 +278,12 @@ function WorkspaceSidebar({
   );
 }
 
+interface AuthBackdropProps {
+  admin?: boolean;
+}
+
 // UI Component: Animated background glows for Auth pages
-function AuthBackdrop({ admin = false }) {
+function AuthBackdrop({ admin = false }: AuthBackdropProps) {
   const glowClasses = admin
     ? {
         top: "bg-indigo-500/20",
@@ -247,8 +307,16 @@ function AuthBackdrop({ admin = false }) {
   );
 }
 
+interface AuthPromoPanelProps {
+  eyebrow: string;
+  title: string;
+  description: string;
+  bullets: { title: string; copy: string }[];
+  admin?: boolean;
+}
+
 // UI Component: Marketing panel shown next to Login/Signup forms
-function AuthPromoPanel({ eyebrow, title, description, bullets, admin = false }) {
+function AuthPromoPanel({ eyebrow, title, description, bullets, admin = false }: AuthPromoPanelProps) {
   return (
     <section className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/60 p-8 shadow-[0_32px_120px_rgba(15,23,42,0.12)] backdrop-blur-xl">
       <div
@@ -287,14 +355,14 @@ function AuthPromoPanel({ eyebrow, title, description, bullets, admin = false })
 }
 
 // UI Component: Handles product image display with a fallback for broken links
-function ProductMedia({ product }) {
+function ProductMedia({ product }: { product: Product }) {
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = Boolean(product.image_url) && !hasImageError;
 
   return showImage ? (
     <div className="product-media">
       <img
-        src={product.image_url}
+        src={product.image_url as string}
         alt={product.name}
         className="h-full w-full object-cover"
         loading="lazy"
@@ -308,10 +376,17 @@ function ProductMedia({ product }) {
   );
 }
 
+interface AuthLandingProps {
+  authMode: "login" | "signup";
+  setAuthMode: (mode: "login" | "signup") => void;
+  userToken: string | null;
+  setUserToken: (token: string | null) => void;
+}
+
 // Page Component: The first screen users see (Login/Signup toggle)
-function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }) {
+function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }: AuthLandingProps) {
   const navigate = useNavigate();
-  const [authMessage, setAuthMessage] = useState("");
+  const [authMessage, setAuthMessage] = useState<string>("");
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-10 sm:px-6 lg:px-8">
@@ -461,8 +536,34 @@ function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }) {
   );
 }
 
+interface ShopPageProps {
+  products: Product[];
+  cart: CartItem[];
+  isProductsLoading: boolean;
+  productError: string;
+  cartCount: number;
+  cartSubtotal: number;
+  onRefresh: () => void;
+  onAddToCart: (product: Product) => void;
+  onUpdateCartQuantity: (productId: number, nextQuantity: number) => void;
+  onRemoveFromCart: (productId: number) => void;
+  onLogout: () => void;
+}
+
 // Page Component: The main customer shopping experience
-function ShopPage({ products, cart, isProductsLoading, productError, cartCount, cartSubtotal, onRefresh, onAddToCart, onUpdateCartQuantity, onRemoveFromCart, onLogout }) {
+function ShopPage({
+  products,
+  cart,
+  isProductsLoading,
+  productError,
+  cartCount,
+  cartSubtotal,
+  onRefresh,
+  onAddToCart,
+  onUpdateCartQuantity,
+  onRemoveFromCart,
+  onLogout,
+}: ShopPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -639,6 +740,22 @@ function ShopPage({ products, cart, isProductsLoading, productError, cartCount, 
   );
 }
 
+interface SupportPageProps {
+  feedbackText: string;
+  feedbackError: string;
+  feedbackSuccess: string;
+  isFeedbackSubmitting: boolean;
+  contactForm: { email: string; subject: string; message: string };
+  contactError: string;
+  contactSuccess: string;
+  isContactSubmitting: boolean;
+  onFeedbackChange: (text: string) => void;
+  onSubmitFeedback: (event: React.FormEvent) => void;
+  onContactFieldChange: (field: string, value: string) => void;
+  onSubmitContact: (event: React.FormEvent) => void;
+  onLogout: () => void;
+}
+
 // Page Component: Support and Contact forms for users
 function SupportPage({
   feedbackText,
@@ -654,7 +771,7 @@ function SupportPage({
   onContactFieldChange,
   onSubmitContact,
   onLogout,
-}) {
+}: SupportPageProps) {
   return (
     <main className="app-shell">
       <AppHeader
@@ -692,7 +809,7 @@ function SupportPage({
 
           <form className="admin-product-form" onSubmit={onSubmitFeedback}>
             <textarea
-              rows="8"
+              rows={8}
               placeholder="Tell us what you need help with."
               value={feedbackText}
               onChange={(event) => onFeedbackChange(event.target.value)}
@@ -734,7 +851,7 @@ function SupportPage({
               onChange={(event) => onContactFieldChange("subject", event.target.value)}
             />
             <textarea
-              rows="6"
+              rows={6}
               placeholder="How can we help?"
               value={contactForm.message}
               onChange={(event) => onContactFieldChange("message", event.target.value)}
@@ -758,8 +875,32 @@ function SupportPage({
   );
 }
 
+interface AdminLoginPageProps {
+  adminUsername: string;
+  adminPassword: string;
+  adminError: string;
+  adminMessage: string;
+  isAdminSubmitting: boolean;
+  setAdminUsername: (username: string) => void;
+  setAdminPassword: (password: string) => void;
+  onSubmit: (event: React.FormEvent) => void;
+  hasAdminSession: boolean;
+  onClearSession: () => void;
+}
+
 // Page Component: Specialized login screen for Admin access
-function AdminLoginPage({ adminUsername, adminPassword, adminError, adminMessage, isAdminSubmitting, setAdminUsername, setAdminPassword, onSubmit, hasAdminSession, onClearSession }) {
+function AdminLoginPage({
+  adminUsername,
+  adminPassword,
+  adminError,
+  adminMessage,
+  isAdminSubmitting,
+  setAdminUsername,
+  setAdminPassword,
+  onSubmit,
+  hasAdminSession,
+  onClearSession,
+}: AdminLoginPageProps) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50 to-blue-100 px-4 py-10 sm:px-6 lg:px-8">
       <AuthBackdrop admin />
@@ -871,6 +1012,24 @@ function AdminLoginPage({ adminUsername, adminPassword, adminError, adminMessage
   );
 }
 
+interface AdminDashboardPageProps {
+  adminOverview: AdminOverview | null;
+  adminProducts: Product[];
+  adminFeedback: FeedbackEntry[];
+  adminForm: Omit<Product, "id">;
+  adminError: string;
+  adminMessage: string;
+  isAdminLoading: boolean;
+  isAdminSubmitting: boolean;
+  isImageUploading: boolean;
+  onFieldChange: (field: string, value: any) => void;
+  onCreateProduct: (event: React.FormEvent) => void;
+  onUploadProductImage: (file: File | null) => void;
+  onToggleProductStatus: (product: Product) => void;
+  onDeleteProduct: (product: Product) => void;
+  onLogout: () => void;
+}
+
 // Page Component: Privileged dashboard for product and system management
 function AdminDashboardPage({
   adminOverview,
@@ -888,7 +1047,7 @@ function AdminDashboardPage({
   onToggleProductStatus,
   onDeleteProduct,
   onLogout,
-}) {
+}: AdminDashboardPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -966,7 +1125,7 @@ function AdminDashboardPage({
                 onChange={(event) => onFieldChange("slug", event.target.value)}
               />
               <textarea
-                rows="4"
+                rows={4}
                 placeholder="Description"
                 value={adminForm.description}
                 onChange={(event) => onFieldChange("description", event.target.value)}
@@ -1169,36 +1328,36 @@ function AdminDashboardPage({
 // THE MAIN APPLICATION COMPONENT
 export default function App() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState(() => readLocalStorage(CART_STORAGE_KEY, []));
-  const [isProductsLoading, setIsProductsLoading] = useState(true);
-  const [productError, setProductError] = useState("");
-  const [authMode, setAuthMode] = useState("login");
-  const [userToken, setUserToken] = useState(() => readToken(AUTH_TOKEN_STORAGE_KEY));
-  const [adminToken, setAdminToken] = useState(() => readToken(ADMIN_TOKEN_STORAGE_KEY));
-  const [adminUsername, setAdminUsername] = useState("admin");
-  const [adminPassword, setAdminPassword] = useState("change-me-too");
-  const [adminOverview, setAdminOverview] = useState(null);
-  const [adminProducts, setAdminProducts] = useState([]);
-  const [adminFeedback, setAdminFeedback] = useState([]);
-  const [adminForm, setAdminForm] = useState(initialAdminForm);
-  const [adminError, setAdminError] = useState("");
-  const [adminMessage, setAdminMessage] = useState("");
-  const [isAdminLoading, setIsAdminLoading] = useState(false);
-  const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
-  const [isImageUploading, setIsImageUploading] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
-  const [feedbackError, setFeedbackError] = useState("");
-  const [feedbackSuccess, setFeedbackSuccess] = useState("");
-  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
-  const [contactForm, setContactForm] = useState(() => ({
-    email: getTokenEmail(readToken(AUTH_TOKEN_STORAGE_KEY)),
+  const [products, setProducts] = useState<Product[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => readLocalStorage(CART_STORAGE_KEY, []));
+  const [isProductsLoading, setIsProductsLoading] = useState<boolean>(true);
+  const [productError, setProductError] = useState<string>("");
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [userToken, setUserToken] = useState<string | null>(() => readToken(AUTH_TOKEN_STORAGE_KEY));
+  const [adminToken, setAdminToken] = useState<string | null>(() => readToken(ADMIN_TOKEN_STORAGE_KEY));
+  const [adminUsername, setAdminUsername] = useState<string>("admin");
+  const [adminPassword, setAdminPassword] = useState<string>("change-me-too");
+  const [adminOverview, setAdminOverview] = useState<AdminOverview | null>(null);
+  const [adminProducts, setAdminProducts] = useState<Product[]>([]);
+  const [adminFeedback, setAdminFeedback] = useState<FeedbackEntry[]>([]);
+  const [adminForm, setAdminForm] = useState<Omit<Product, "id">>(initialAdminForm);
+  const [adminError, setAdminError] = useState<string>("");
+  const [adminMessage, setAdminMessage] = useState<string>("");
+  const [isAdminLoading, setIsAdminLoading] = useState<boolean>(false);
+  const [isAdminSubmitting, setIsAdminSubmitting] = useState<boolean>(false);
+  const [isImageUploading, setIsImageUploading] = useState<boolean>(false);
+  const [feedbackText, setFeedbackText] = useState<string>("");
+  const [feedbackError, setFeedbackError] = useState<string>("");
+  const [feedbackSuccess, setFeedbackSuccess] = useState<string>("");
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState<boolean>(false);
+  const [contactForm, setContactForm] = useState<{ email: string; subject: string; message: string }>(() => ({
+    email: getTokenEmail(readToken(AUTH_TOKEN_STORAGE_KEY)) || "",
     subject: "",
     message: "",
   }));
-  const [contactError, setContactError] = useState("");
-  const [contactSuccess, setContactSuccess] = useState("");
-  const [isContactSubmitting, setIsContactSubmitting] = useState(false);
+  const [contactError, setContactError] = useState<string>("");
+  const [contactSuccess, setContactSuccess] = useState<string>("");
+  const [isContactSubmitting, setIsContactSubmitting] = useState<boolean>(false);
 
   // useMemo prevents expensive re-calculations of cart totals unless 'cart' changes
   const cartCount = useMemo(
@@ -1229,7 +1388,7 @@ export default function App() {
 
       const data = await response.json();
       setProducts(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (err: any) {
       setProductError(err.message || "Failed to load products.");
     } finally {
       setIsProductsLoading(false);
@@ -1237,7 +1396,7 @@ export default function App() {
   }
 
   // Cart Logic: Add item or increment quantity if already present
-  function addToCart(product) {
+  function addToCart(product: Product) {
     setCart((currentCart) => {
       const existingItem = currentCart.find((item) => item.id === product.id);
 
@@ -1264,7 +1423,7 @@ export default function App() {
   }
 
   // Cart Logic: Adjust quantity or remove item if quantity drops to 0
-  function updateCartQuantity(productId, nextQuantity) {
+  function updateCartQuantity(productId: number, nextQuantity: number) {
     setCart((currentCart) =>
       currentCart.flatMap((item) => {
         if (item.id !== productId) {
@@ -1286,12 +1445,12 @@ export default function App() {
   }
 
   // Cart Logic: Instant removal of a product
-  function removeFromCart(productId) {
+  function removeFromCart(productId: number) {
     setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
   }
 
   // Admin Logic: Fetch protected dashboard data (overview, catalog, feedback)
-  async function fetchAdminData(token = adminToken) {
+  async function fetchAdminData(token: string | null = adminToken) {
     if (!token) {
       return;
     }
@@ -1325,7 +1484,7 @@ export default function App() {
       setAdminOverview(overviewData);
       setAdminProducts(Array.isArray(productsData) ? productsData : []);
       setAdminFeedback(Array.isArray(feedbackData) ? feedbackData : []);
-    } catch (err) {
+    } catch (err: any) {
       setAdminError(err.message || "Failed to load admin dashboard.");
       setAdminToken("");
       setAdminOverview(null);
@@ -1338,7 +1497,7 @@ export default function App() {
   }
 
   // Admin Logic: Authenticate specifically for administrative access
-  async function handleAdminLogin(event) {
+  async function handleAdminLogin(event: React.FormEvent) {
     event.preventDefault();
     setIsAdminSubmitting(true);
     setAdminError("");
@@ -1354,7 +1513,7 @@ export default function App() {
       setAdminMessage("Admin session ready.");
       await fetchAdminData(data.access_token);
       navigate("/admin/dashboard", { replace: true });
-    } catch (err) {
+    } catch (err: any) {
       setAdminError(err.message || "Failed to sign in.");
       setAdminToken("");
       if (typeof window !== "undefined") {
@@ -1383,7 +1542,7 @@ export default function App() {
   }
 
   // Product Logic: Upload image to server and update form state
-  async function handleUploadProductImage(file) {
+  async function handleUploadProductImage(file: File | null) {
     if (!file) {
       return;
     }
@@ -1415,7 +1574,7 @@ export default function App() {
         image_url: data.image_url || "",
       }));
       setAdminMessage("Image uploaded and attached to the product form.");
-    } catch (err) {
+    } catch (err: any) {
       setAdminError(err.message || "Failed to upload image.");
     } finally {
       setIsImageUploading(false);
@@ -1423,7 +1582,7 @@ export default function App() {
   }
 
   // Feedback Logic: Submit user message to database
-  async function handleSubmitFeedback(event) {
+  async function handleSubmitFeedback(event: React.FormEvent) {
     event.preventDefault();
     setIsFeedbackSubmitting(true);
     setFeedbackError("");
@@ -1455,7 +1614,7 @@ export default function App() {
       if (hasAdminSession) {
         await fetchAdminData();
       }
-    } catch (err) {
+    } catch (err: any) {
       setFeedbackError(err.message || "Failed to send feedback.");
     } finally {
       setIsFeedbackSubmitting(false);
@@ -1463,7 +1622,7 @@ export default function App() {
   }
 
   // Support Logic: Queue an email in the background worker
-  async function handleSubmitContact(event) {
+  async function handleSubmitContact(event: React.FormEvent) {
     event.preventDefault();
     setIsContactSubmitting(true);
     setContactError("");
@@ -1499,7 +1658,7 @@ export default function App() {
         message: "",
       }));
       setContactSuccess("Support email queued successfully.");
-    } catch (err) {
+    } catch (err: any) {
       setContactError(err.message || "Failed to queue support email.");
     } finally {
       setIsContactSubmitting(false);
@@ -1507,7 +1666,7 @@ export default function App() {
   }
 
   // Admin Logic: POST new product to the catalog
-  async function handleCreateProduct(event) {
+  async function handleCreateProduct(event: React.FormEvent) {
     event.preventDefault();
     setIsAdminSubmitting(true);
     setAdminError("");
@@ -1535,7 +1694,7 @@ export default function App() {
       setAdminForm(initialAdminForm);
       setAdminMessage("Product created.");
       await Promise.all([fetchProducts(), fetchAdminData()]);
-    } catch (err) {
+    } catch (err: any) {
       setAdminError(err.message || "Failed to create product.");
     } finally {
       setIsAdminSubmitting(false);
@@ -1543,7 +1702,7 @@ export default function App() {
   }
 
   // Admin Logic: Toggle product visibility (is_active)
-  async function toggleProductStatus(product) {
+  async function toggleProductStatus(product: Product) {
     setIsAdminSubmitting(true);
     setAdminError("");
     setAdminMessage("");
@@ -1565,7 +1724,7 @@ export default function App() {
 
       setAdminMessage(`Product ${product.is_active ? "hidden" : "published"}.`);
       await Promise.all([fetchProducts(), fetchAdminData()]);
-    } catch (err) {
+    } catch (err: any) {
       setAdminError(err.message || "Failed to update product.");
     } finally {
       setIsAdminSubmitting(false);
@@ -1573,7 +1732,7 @@ export default function App() {
   }
 
   // Admin Logic: Permanent product deletion
-  async function handleDeleteProduct(product) {
+  async function handleDeleteProduct(product: Product) {
     setIsAdminSubmitting(true);
     setAdminError("");
     setAdminMessage("");
@@ -1593,7 +1752,7 @@ export default function App() {
 
       setAdminMessage("Product deleted.");
       await Promise.all([fetchProducts(), fetchAdminData()]);
-    } catch (err) {
+    } catch (err: any) {
       setAdminError(err.message || "Failed to delete product.");
     } finally {
       setIsAdminSubmitting(false);
@@ -1602,7 +1761,7 @@ export default function App() {
 
   // Effect: Initial product load on app mount
   useEffect(() => {
-    fetchProducts().catch((err) => {
+    fetchProducts().catch((err: any) => {
       setProductError(err.message || "Failed to load products.");
     });
   }, []);

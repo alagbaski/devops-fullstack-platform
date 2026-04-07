@@ -9,7 +9,35 @@
 const API_URL = "/api/v1/auth";
 export const AUTH_TOKEN_STORAGE_KEY = "devops-platform-auth-token";
 
-function formatErrorDetail(detail) {
+export interface SignupPayload {
+  email: string;
+  username: string;
+  password?: string;
+  [key: string]: any;
+}
+
+export interface LoginPayload {
+  email?: string;
+  username?: string;
+  password?: string;
+  [key: string]: any;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user_id: number;
+}
+
+export interface ErrorDetailItem {
+  loc: (string | number)[];
+  msg: string;
+  type: string;
+}
+
+export type ErrorDetail = string | ErrorDetailItem[] | { message: string } | any;
+
+function formatErrorDetail(detail: ErrorDetail): string {
   // FastAPI returns errors in different formats (strings, objects, or arrays).
   // This function normalizes them into a single readable string for the UI.
   if (!detail) {
@@ -43,13 +71,13 @@ function formatErrorDetail(detail) {
   }
 
   if (typeof detail === "object") {
-    return detail.message || JSON.stringify(detail);
+    return (detail as any).message || JSON.stringify(detail);
   }
 
   return "Authentication request failed.";
 }
 
-async function parseResponse(response) {
+async function parseResponse<T>(response: Response): Promise<T> {
   // Helper to parse JSON and throw a formatted error if the
   // HTTP status code indicates failure (not in 200-299 range).
   const data = await response.json().catch(() => ({}));
@@ -58,20 +86,20 @@ async function parseResponse(response) {
     throw new Error(formatErrorDetail(data.detail));
   }
 
-  return data;
+  return data as T;
 }
 
-export async function signupUser(payload) {
+export async function signupUser(payload: SignupPayload): Promise<any> {
   const response = await fetch(`${API_URL}/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
-  return parseResponse(response);
+  return parseResponse<any>(response);
 }
 
-export async function loginUser(payload) {
+export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
   // Perform login and automatically save the resulting token to localStorage.
   const response = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -79,7 +107,7 @@ export async function loginUser(payload) {
     body: JSON.stringify(payload),
   });
 
-  const data = await parseResponse(response);
+  const data = await parseResponse<AuthResponse>(response);
   window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.access_token);
   return data;
 }
