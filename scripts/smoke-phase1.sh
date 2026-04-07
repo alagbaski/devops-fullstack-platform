@@ -2,8 +2,9 @@
 
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:8000}"
+BASE_URL="${BASE_URL:-http://localhost:80}"
 EMAIL="${SMOKE_TEST_EMAIL:-phase1-smoke@example.com}"
+USERNAME="${SMOKE_TEST_USERNAME:-phase1-smoke-user}"
 PASSWORD="${SMOKE_TEST_PASSWORD:-phase1-smoke-pass}"
 ITEM_NAME="${SMOKE_TEST_ITEM:-phase1-smoke-item}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
@@ -43,7 +44,7 @@ echo "Creating smoke-test user..."
 signup_status="$(curl -sS -o "$TMP_DIR/signup.json" -w "%{http_code}" \
   -X POST "$BASE_URL/api/v1/auth/signup" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")"
+  -d "{\"email\":\"$EMAIL\",\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")"
 
 if [[ "$signup_status" != "201" && "$signup_status" != "400" ]]; then
   echo "Signup failed unexpectedly"
