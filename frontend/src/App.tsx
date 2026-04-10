@@ -234,7 +234,7 @@ function WorkspaceSidebar({
         type="button"
         aria-expanded={isOpen}
         aria-label="Toggle workspace menu"
-        className={`fixed top-5 z-[70] inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/50 bg-white/65 text-slate-800 shadow-[0_18px_45px_rgba(59,130,246,0.14)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/80 lg:top-6 ${isOpen ? "left-[15.95rem]" : "left-5 lg:left-6"}`}
+        className={`fixed top-5 z-[70] inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/50 bg-white/65 text-slate-800 shadow-[0_18px_45px_rgba(59,130,246,0.14)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/80 lg:top-6 ${isOpen ? "left-[12.95rem]" : "left-5 lg:left-6"}`}
         onClick={onToggle}
       >
         <span className="grid gap-1.5">
@@ -245,74 +245,66 @@ function WorkspaceSidebar({
       </button>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-[60] flex w-[19rem] flex-col overflow-hidden border-r border-white/50 bg-[linear-gradient(180deg,rgba(248,251,255,0.94),rgba(235,243,255,0.92))] text-slate-800 shadow-[0_26px_90px_rgba(59,130,246,0.16)] backdrop-blur-2xl transition duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-[60] flex w-[16rem] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-950 text-slate-100 shadow-[0_26px_90px_rgba(0,0,0,0.5)] backdrop-blur-3xl transition duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center gap-4 border-b border-slate-200/70 px-5 pb-5 pt-20">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-500 to-sky-400 text-base font-bold text-white shadow-[0_14px_30px_rgba(59,130,246,0.28)]">
+        <div className="flex items-center gap-4 border-b border-white/5 px-6 pb-6 pt-16">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-base font-black text-white shadow-lg ring-1 ring-white/10">
             OD
           </div>
           <div className={`min-w-0 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-            <div className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">{badge}</div>
-            <div className="mt-1 text-lg font-semibold text-slate-900">{title}</div>
+            <div className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-indigo-400">{badge}</div>
+            <div className="mt-0.5 text-lg font-bold tracking-tight text-white">{title}</div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-5">
-          <div className={`grid gap-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-            <div className="rounded-[1.6rem] border border-white/70 bg-white/65 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-              <p className="text-sm leading-6 text-slate-600">{description}</p>
+        <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div className={`grid gap-8 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+            <div className="px-3">
+              <p className="text-sm leading-relaxed text-slate-400">{description}</p>
             </div>
 
             {stats.length ? (
-              <div className="grid gap-3">
+              <div className="grid gap-3 px-3">
                 {stats.map((stat) => (
-                  <div key={stat.label} className="rounded-2xl border border-white/70 bg-white/65 px-4 py-3 shadow-[0_14px_30px_rgba(148,163,184,0.12)]">
-                    <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <div key={stat.label} className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <span className="text-[0.7rem] font-bold uppercase tracking-wider text-slate-500">
                       {stat.label}
-                    </div>
-                    <div className="mt-2 text-xl font-semibold text-slate-900">{stat.value}</div>
+                    </span>
+                    <strong className="text-lg text-white">{stat.value}</strong>
                   </div>
                 ))}
               </div>
             ) : null}
 
             {links.length ? (
-              <div className="grid gap-2">
-                {links.map((link) =>
-                  "href" in link ? (
-                    <a
-                      key={link.label}
-                      className="rounded-2xl border border-white/70 bg-white/60 px-4 py-3 text-sm font-medium text-slate-700 transition duration-200 hover:border-blue-300 hover:bg-white/85 hover:text-slate-900"
-                      href={link.href}
-                      onClick={onClose}
-                    >
+              <div className="grid gap-1">
+                <div className="px-3 mb-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-slate-600">Navigation</div>
+                {links.map((link) => {
+                  const linkClass = "group flex items-center rounded-xl px-4 py-3 text-[0.95rem] font-semibold text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white";
+                  return "href" in link ? (
+                    <a key={link.label} className={linkClass} href={link.href} onClick={onClose}>
                       {link.label}
                     </a>
                   ) : (
-                    <Link
-                      key={link.label}
-                      className="rounded-2xl border border-white/70 bg-white/60 px-4 py-3 text-sm font-medium text-slate-700 transition duration-200 hover:border-blue-300 hover:bg-white/85 hover:text-slate-900"
-                      to={link.to}
-                      onClick={onClose}
-                    >
+                    <Link key={link.label} className={linkClass} to={link.to} onClick={onClose}>
                       {link.label}
                     </Link>
-                  )
-                )}
+                  );
+                })}
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className={`grid gap-2 border-t border-slate-200/70 px-4 py-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+        <div className={`grid gap-3 border-t border-white/5 bg-slate-900 px-6 py-6 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
           {actions.map((action) => (
             <button
               key={action.label}
               type="button"
-              className={`rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 ${
+              className={`rounded-xl px-4 py-3 text-[0.95rem] font-semibold transition duration-200 ${
                 action.tone === "danger"
-                  ? "bg-slate-900 text-white hover:bg-slate-800"
-                  : "border border-white/70 bg-white/65 text-slate-800 hover:bg-white/90"
+                  ? "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 ring-1 ring-rose-500/30"
+                  : "bg-white/10 text-white hover:bg-white/20 ring-1 ring-white/10"
               }`}
               onClick={() => {
                 onClose();
@@ -661,69 +653,50 @@ function ShopPage({
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[20.5rem]" : "lg:pl-24"}`}>
-      <AppHeader
-        title="Build your developer stack like a product team."
-        description="OPSDEV is now a public storefront first: explore tools, save a cart, and only sign in when you are ready to continue to checkout or support workflows."
-        actions={
-          <>
-            <button type="button" className="secondary-button" onClick={onRefresh} disabled={isProductsLoading}>
-              {isProductsLoading ? "Refreshing..." : "Explore catalog"}
+      <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[17rem]" : "lg:pl-24"}`}>
+      <section className="mx-auto mb-12 grid w-full max-w-7xl gap-5 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-center text-white shadow-2xl relative">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:64px_64px] opacity-30"></div>
+        <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-indigo-600/30 blur-[100px]"></div>
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-purple-600/30 blur-[100px]"></div>
+        
+        <div className="relative z-10 px-6 py-20 lg:py-28">
+          <span className="mb-6 inline-block rounded-full border border-indigo-400/30 bg-indigo-500/10 px-5 py-2 text-sm font-bold tracking-widest text-indigo-300 uppercase">
+            {hasUserSession ? "Welcome Back, Engineer" : "Premium Developer Store"}
+          </span>
+          <h1 className="font-display mb-6 text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-7xl">
+            Ship faster with curated <br className="hidden lg:block"/> production workflow tools
+          </h1>
+          <p className="mx-auto mb-10 max-w-3xl text-lg leading-relaxed text-indigo-200/80 sm:text-xl">
+            Blend infrastructure utilities, team kits, and operational assets into one cleaner purchasing experience. Browse our full catalog below and save items instantly to your cart.
+          </p>
+          <div className="flex flex-wrap justify-center gap-5">
+            <button
+              type="button"
+              className="relative overflow-hidden rounded-[1.2rem] bg-white px-8 py-4 text-[1.1rem] font-bold text-indigo-950 shadow-[0_10px_25px_rgba(255,255,255,0.15)] transition-all duration-300 hover:-translate-y-1 hover:bg-slate-50 hover:shadow-[0_15px_30px_rgba(255,255,255,0.25)] disabled:cursor-wait disabled:opacity-70"
+              onClick={onRefresh}
+              disabled={isProductsLoading}
+            >
+              {isProductsLoading ? "Refreshing..." : "Shop The Collection"}
             </button>
             {hasUserSession ? (
-              <button type="button" className="secondary-button" onClick={onLogout}>
+              <button
+                type="button"
+                className="rounded-[1.2rem] border border-white/20 bg-white/5 px-8 py-4 text-[1.1rem] font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/10"
+                onClick={onLogout}
+              >
                 Log out
               </button>
             ) : (
-              <button type="button" className="secondary-button" onClick={onOpenAccount}>
-                Sign in for checkout
+              <button
+                type="button"
+                className="rounded-[1.2rem] border border-white/20 bg-white/5 px-8 py-4 text-[1.1rem] font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/10"
+                onClick={onOpenAccount}
+              >
+                Sign Up / Login
               </button>
             )}
-          </>
-        }
-      />
-
-      <section className="storefront-hero-grid">
-        <article className="storefront-hero-card panel">
-          <div className="storefront-hero-card__copy">
-            <p className="section-label">Featured workflow</p>
-            <h2>Ship-ready tooling curated for engineers who care about the details.</h2>
-            <p>
-              Blend infrastructure utilities, team kits, and operational assets into one cleaner purchasing experience.
-            </p>
           </div>
-          <div className="storefront-hero-card__meta">
-            <div>
-              <span>Access model</span>
-              <strong>{hasUserSession ? "Signed in shopper" : "Guest browsing enabled"}</strong>
-            </div>
-            <div>
-              <span>Checkout</span>
-              <strong>{hasUserSession ? "Ready" : "Prompts for account"}</strong>
-            </div>
-          </div>
-        </article>
-
-        <article className="storefront-collection panel">
-          <div className="storefront-collection__header">
-            <p className="section-label">Collection pulse</p>
-            <h2>What this storefront is built to feel like.</h2>
-          </div>
-          <div className="storefront-collection__grid">
-            <div>
-              <span>Confident merchandising</span>
-              <p>Cleaner product cards, clearer stock states, and stronger visual rhythm.</p>
-            </div>
-            <div>
-              <span>Account only when needed</span>
-              <p>Guests can browse first, then authenticate when they want to complete the flow.</p>
-            </div>
-            <div>
-              <span>Developer-forward polish</span>
-              <p>A storefront with enough personality that other teams would want to borrow the patterns.</p>
-            </div>
-          </div>
-        </article>
+        </div>
       </section>
 
       <section className="workspace-grid workspace-grid-store">
@@ -805,7 +778,7 @@ function ShopPage({
           <div className="panel-header">
             <div>
               <p className="section-label">Cart</p>
-              <h2>{hasUserSession ? "Saved items" : "Guest cart"}</h2>
+              <h2>Cart</h2>
             </div>
             <p>{cartCount === 0 ? "No products selected yet." : `${cartCount} item${cartCount === 1 ? "" : "s"} in cart.`}</p>
           </div>
@@ -820,7 +793,7 @@ function ShopPage({
               </p>
             </div>
             <button type="button" className="secondary-button" onClick={hasUserSession ? onStartCheckout : onOpenAccount}>
-              {hasUserSession ? "Continue to checkout" : "Sign in to checkout"}
+              Checkout
             </button>
           </div>
 
@@ -1198,18 +1171,22 @@ function AdminDashboardPage({
   onLogout,
 }: AdminDashboardPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (adminForm.name === "" && adminForm.description === "") {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }, [adminForm.name, adminForm.description]);
 
   return (
     <>
       <WorkspaceSidebar
         badge="Operations"
         title="OPSDEV Admin"
-        description="Use the left workspace rail to move through admin actions the way a proper application shell should behave."
-        stats={[
-          { label: "Total Products", value: adminOverview?.product_counts?.total ?? "..." },
-          { label: "Active", value: adminOverview?.product_counts?.active ?? "..." },
-          { label: "Feedback", value: adminFeedback.length },
-        ]}
+        description="Use the left workspace rail to rapidly navigate through protected admin modules."
         links={[
           { label: "Back to shop", to: "/shop" },
           { label: "Create product", href: "#admin-create" },
@@ -1225,30 +1202,39 @@ function AdminDashboardPage({
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[20.5rem]" : "lg:pl-24"}`}>
-      <AppHeader
-        title="Manage the protected admin dashboard."
-        description="This route is reserved for admins only and uses the stored admin JWT to load product and system data."
-      />
-
-      <section className="page-panel panel panel-admin">
-        <div className="panel-header panel-header-split">
-          <div>
-            <p className="section-label">Admin</p>
-            <h2>Dashboard</h2>
+      <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[17rem]" : "lg:pl-24"}`}>
+      <div className="mx-auto w-full max-w-7xl mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-widest mb-3 border border-indigo-200/50">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse border border-emerald-200"></span> 
+            Protected Environment
+          </span>
+          <h1 className="font-display text-4xl md:text-[3rem] font-black text-slate-900 tracking-tight leading-none">
+            Command Center
+          </h1>
+          <p className="text-slate-500 mt-3 text-lg max-w-xl">
+            Manage your storefront inventory, control visibility states, and monitor live customer feedback from a single pane of glass.
+          </p>
+        </div>
+        <div className="flex items-center gap-4 bg-white/60 p-2 pr-6 rounded-full border border-white/80 shadow-sm backdrop-blur-md">
+          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 shadow-md shadow-indigo-500/20 flex items-center justify-center text-white font-bold text-xl ring-2 ring-white">
+            OD
           </div>
-          <div className="panel-actions">
-            <p>{isAdminLoading ? "Syncing dashboard..." : "Admin session active"}</p>
+          <div className="text-left hidden sm:block">
+             <p className="text-sm font-black text-slate-900 leading-tight">Admin Principal</p>
+             <p className="text-[0.7rem] font-bold uppercase tracking-wider text-emerald-600 mt-0.5">{isAdminLoading ? "Syncing data..." : "Session Secure"}</p>
           </div>
         </div>
+      </div>
 
+      <section className="mx-auto w-full max-w-7xl">
         {adminError ? (
-          <p className="error-message" role="alert">
+          <p className="error-message mb-6" role="alert">
             {adminError}
           </p>
         ) : null}
 
-        {adminMessage ? <p className="success-message">{adminMessage}</p> : null}
+        {adminMessage ? <p className="success-message mb-6">{adminMessage}</p> : null}
 
         <div className="admin-grid">
           <section id="admin-create" className="admin-card scroll-mt-24">
@@ -1257,30 +1243,30 @@ function AdminDashboardPage({
                 <p className="section-label">Create</p>
                 <h2>New product</h2>
               </div>
-              <p>Add catalog items without leaving the dashboard route.</p>
+              <p>Add catalog items instantly to the storefront.</p>
             </div>
 
-            <form className="admin-product-form" onSubmit={onCreateProduct}>
+            <form className="admin-product-form mt-8" onSubmit={onCreateProduct}>
               <input
                 type="text"
-                placeholder="Name"
+                placeholder="Product Name"
                 value={adminForm.name}
                 onChange={(event) => onFieldChange("name", event.target.value)}
               />
               <input
                 type="text"
-                placeholder="Slug"
+                placeholder="URL Slug (e.g. fresh-app-kit)"
                 value={adminForm.slug}
                 onChange={(event) => onFieldChange("slug", event.target.value)}
               />
               <textarea
                 rows={4}
-                placeholder="Description"
+                placeholder="Describe the product details..."
                 value={adminForm.description}
                 onChange={(event) => onFieldChange("description", event.target.value)}
               />
 
-              <div className="admin-form-row">
+              <div className="admin-form-row pt-2">
                 <input
                   type="text"
                   placeholder="Price"
@@ -1289,183 +1275,190 @@ function AdminDashboardPage({
                 />
                 <input
                   type="text"
-                  placeholder="Currency"
+                  placeholder="Currency (USD)"
                   value={adminForm.currency}
                   onChange={(event) => onFieldChange("currency", event.target.value)}
                 />
                 <input
                   type="number"
                   min="0"
-                  placeholder="Inventory"
+                  placeholder="Inventory Count"
                   value={adminForm.inventory_count}
                   onChange={(event) => onFieldChange("inventory_count", event.target.value)}
                 />
               </div>
 
               <input
-                type="url"
-                placeholder="Image URL"
+                type="text"
+                placeholder="External Image URL or Upload below"
                 value={adminForm.image_url}
                 onChange={(event) => onFieldChange("image_url", event.target.value)}
               />
 
-              <label className="grid gap-2 text-sm font-medium text-slate-700">
-                <span>Upload image</span>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/gif,image/webp"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
-                  onChange={(event) => onUploadProductImage(event.target.files?.[0] || null)}
-                  disabled={isImageUploading || isAdminSubmitting}
-                />
+              <label className="grid gap-2 text-[0.95rem] font-bold text-slate-700 mt-2">
+                <span>Upload Product Image</span>
+                <div className="relative group p-1 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all hover:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-100/50">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    className="w-full text-slate-500 outline-none file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:bg-indigo-50 file:px-5 file:py-3 file:text-sm file:font-bold file:text-indigo-700 hover:file:bg-indigo-100 transition-colors"
+                    onChange={(event) => onUploadProductImage(event.target.files?.[0] || null)}
+                    disabled={isImageUploading || isAdminSubmitting}
+                  />
+                </div>
               </label>
 
               {adminForm.image_url ? (
-                <div className="admin-upload-preview">
-                  <img src={adminForm.image_url} alt="Product preview" className="h-full w-full object-cover" />
+                <div className="admin-upload-preview mt-2">
+                  <img src={adminForm.image_url} alt="Product preview" />
                 </div>
               ) : null}
 
               {isImageUploading ? (
-                <p className="text-sm text-slate-500">Uploading image...</p>
+                <p className="text-sm font-bold text-indigo-500 animate-pulse">Uploading product media...</p>
               ) : null}
 
-              <label className="checkbox-row">
+              <label className="checkbox-row mt-4">
                 <input
                   type="checkbox"
+                  className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500"
                   checked={adminForm.is_active}
                   onChange={(event) => onFieldChange("is_active", event.target.checked)}
                 />
-                Publish immediately
+                Publish immediately to public storefront
               </label>
 
-              <button type="submit" disabled={isAdminSubmitting}>
-                {isAdminSubmitting ? "Saving..." : "Create product"}
+              <button type="submit" disabled={isAdminSubmitting} className="mt-2">
+                {isAdminSubmitting ? "Committing..." : "Create Product Draft"}
               </button>
             </form>
           </section>
 
-          <section id="admin-overview" className="admin-card scroll-mt-24">
-            <div className="panel-header">
-              <div>
-                <p className="section-label">Overview</p>
-                <h2>System summary</h2>
+          <div className="grid gap-6">
+            <section id="admin-overview" className="admin-card scroll-mt-24">
+              <div className="panel-header">
+                <div>
+                  <p className="section-label">Overview</p>
+                  <h2>System Status</h2>
+                </div>
               </div>
-              <p>Protected counts and service links stay on the admin route.</p>
-            </div>
 
-            {adminOverview?.product_counts ? (
-              <div className="admin-counts">
-                <div>
-                  <span>Total</span>
-                  <strong>{adminOverview.product_counts.total}</strong>
+              {adminOverview?.product_counts ? (
+                <div className="admin-counts">
+                  <div>
+                    <span>Total Listings</span>
+                    <strong>{adminOverview.product_counts.total}</strong>
+                  </div>
+                  <div>
+                    <span>Visible</span>
+                    <strong>{adminOverview.product_counts.active}</strong>
+                  </div>
+                  <div>
+                    <span>Hidden</span>
+                    <strong>{adminOverview.product_counts.inactive}</strong>
+                  </div>
                 </div>
-                <div>
-                  <span>Active</span>
-                  <strong>{adminOverview.product_counts.active}</strong>
+              ) : (
+                <div className="empty-state !min-h-[140px] mt-4">
+                  <p>Initializing telemetry parameters...</p>
                 </div>
-                <div>
-                  <span>Inactive</span>
-                  <strong>{adminOverview.product_counts.inactive}</strong>
-                </div>
-              </div>
-            ) : (
-              <div className="empty-state">
-                <p>Overview data will appear after the dashboard finishes loading.</p>
-              </div>
-            )}
+              )}
 
-            {adminOverview?.system_links?.length ? (
-              <ul className="service-list admin-service-list">
-                {adminOverview.system_links.map((link) => (
-                  <li key={link.label}>
-                    <a href={link.url} target="_blank" rel="noreferrer">
-                      <strong>{link.label}</strong>
-                      <small>{link.url}</small>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
+              {adminOverview?.system_links?.length ? (
+                <ul className="service-list admin-service-list mt-6">
+                  {adminOverview.system_links.map((link) => (
+                    <li key={link.label}>
+                      <a href={link.url} target="_blank" rel="noreferrer">
+                        <strong>{link.label}</strong>
+                        <small className="text-slate-400 block mt-0.5">{link.url}</small>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+
+            <section id="admin-feedback" className="admin-card scroll-mt-24">
+              <div className="panel-header mb-6">
+                <div>
+                  <p className="section-label">Support Inbox</p>
+                  <h2>Customer Feedback</h2>
+                </div>
+              </div>
+
+              {adminFeedback.length === 0 ? (
+                <div className="empty-state !min-h-[160px]">
+                  <p>No active support tickets.</p>
+                </div>
+              ) : (
+                <ul className="admin-product-list !gap-3">
+                  {adminFeedback.map((entry) => (
+                    <li key={entry.id} className="!p-4 !grid-cols-1 gap-2">
+                      <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-1">
+                        <strong className="text-sm">User #{entry.user_id}</strong>
+                        <span className="section-label !mb-0">{new Date(entry.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-slate-600 mt-1">{entry.message}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
         </div>
 
-        <section id="admin-products" className="admin-card admin-products-card scroll-mt-24">
-          <div className="panel-header">
+        <section id="admin-products" className="admin-card mt-8 scroll-mt-24 w-full">
+          <div className="panel-header mb-6">
             <div>
-              <p className="section-label">Catalog</p>
-              <h2>Existing products</h2>
+              <p className="section-label">Catalog Manager</p>
+              <h2>Assortment & Inventory</h2>
             </div>
-            <p>Toggle product visibility directly from the protected dashboard.</p>
           </div>
 
           {adminProducts.length === 0 ? (
             <div className="empty-state">
-              <p>No products created yet.</p>
+              <p>The catalog is currently empty.</p>
             </div>
           ) : (
-            <ul className="admin-product-list">
-              {adminProducts.map((product) => (
-                <li key={product.id}>
-                  <div>
-                    <strong>{product.name}</strong>
-                    <p>
-                      {product.currency} {Number(product.price).toFixed(2)} · {product.inventory_count} in stock
-                    </p>
-                  </div>
+            <div className="overflow-x-auto pb-4">
+              <ul className="admin-product-list !mt-0 min-w-[700px]">
+                {adminProducts.map((product) => (
+                  <li key={product.id} className="!px-6 !py-5">
+                    <div>
+                      <strong className="text-lg">{product.name}</strong>
+                      <p className="mt-1">
+                        <span className="font-bold text-slate-800">{product.currency} {Number(product.price).toFixed(2)}</span>
+                        <span className="mx-2 text-slate-300">|</span>
+                        {product.inventory_count} units available
+                      </p>
+                    </div>
 
-                  <span className={`admin-badge ${product.is_active ? "is-active" : "is-inactive"}`}>
-                    {product.is_active ? "Active" : "Hidden"}
-                  </span>
+                    <span className={`admin-badge ${product.is_active ? "is-active" : "is-inactive"}`}>
+                      {product.is_active ? "Live" : "Draft"}
+                    </span>
 
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => onToggleProductStatus(product)}
-                    disabled={isAdminSubmitting}
-                  >
-                    {product.is_active ? "Hide" : "Publish"}
-                  </button>
+                    <button
+                      type="button"
+                      className="secondary-button !py-2 !px-5"
+                      onClick={() => onToggleProductStatus(product)}
+                      disabled={isAdminSubmitting}
+                    >
+                      {product.is_active ? "Revoke" : "Publish"}
+                    </button>
 
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => onDeleteProduct(product)}
-                    disabled={isAdminSubmitting}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section id="admin-feedback" className="admin-card admin-products-card scroll-mt-24">
-          <div className="panel-header">
-            <div>
-              <p className="section-label">Support Inbox</p>
-              <h2>User feedback</h2>
+                    <button
+                      type="button"
+                      className="secondary-button !py-2 !px-5 !text-rose-600 hover:!bg-rose-50 hover:!border-rose-200"
+                      onClick={() => onDeleteProduct(product)}
+                      disabled={isAdminSubmitting}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p>Latest customer messages sent from the storefront support page.</p>
-          </div>
-
-          {adminFeedback.length === 0 ? (
-            <div className="empty-state">
-              <p>No feedback messages yet.</p>
-            </div>
-          ) : (
-            <ul className="admin-product-list">
-              {adminFeedback.map((entry) => (
-                <li key={entry.id} className="xl:grid-cols-[minmax(0,1fr)_auto]">
-                  <div>
-                    <strong>User #{entry.user_id}</strong>
-                    <p>{entry.message}</p>
-                  </div>
-                  <span className="section-label">{new Date(entry.created_at).toLocaleString()}</span>
-                </li>
-              ))}
-            </ul>
           )}
         </section>
       </section>
@@ -1730,7 +1723,13 @@ export default function App() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || "Failed to upload image.");
+        let errMsg = data.detail || "Failed to upload image.";
+        if (Array.isArray(data.detail)) {
+          errMsg = data.detail.map((e: any) => `${e.loc?.[e.loc?.length - 1] ?? "Field"}: ${e.msg}`).join(", ");
+        } else if (typeof data.detail === "object") {
+          errMsg = JSON.stringify(data.detail);
+        }
+        throw new Error(errMsg);
       }
 
       const data = await response.json();
@@ -1770,7 +1769,13 @@ export default function App() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || "Failed to send feedback.");
+        let errMsg = data.detail || "Failed to send feedback.";
+        if (Array.isArray(data.detail)) {
+          errMsg = data.detail.map((e: any) => `${e.loc?.[e.loc?.length - 1] ?? "Field"}: ${e.msg}`).join(", ");
+        } else if (typeof data.detail === "object") {
+          errMsg = JSON.stringify(data.detail);
+        }
+        throw new Error(errMsg);
       }
 
       setFeedbackText("");
@@ -1814,7 +1819,13 @@ export default function App() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || "Failed to queue support email.");
+        let errMsg = data.detail || "Failed to queue support email.";
+        if (Array.isArray(data.detail)) {
+          errMsg = data.detail.map((e: any) => `${e.loc?.[e.loc?.length - 1] ?? "Field"}: ${e.msg}`).join(", ");
+        } else if (typeof data.detail === "object") {
+          errMsg = JSON.stringify(data.detail);
+        }
+        throw new Error(errMsg);
       }
 
       setContactForm((current) => ({
@@ -1853,7 +1864,13 @@ export default function App() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || "Failed to create product.");
+        let errMsg = data.detail || "Failed to create product.";
+        if (Array.isArray(data.detail)) {
+          errMsg = data.detail.map((e: any) => `${e.loc?.[e.loc?.length - 1] ?? "Field"}: ${e.msg}`).join(", ");
+        } else if (typeof data.detail === "object") {
+          errMsg = JSON.stringify(data.detail);
+        }
+        throw new Error(errMsg);
       }
 
       setAdminForm(initialAdminForm);
@@ -1884,7 +1901,13 @@ export default function App() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || "Failed to update product.");
+        let errMsg = data.detail || "Failed to update product.";
+        if (Array.isArray(data.detail)) {
+          errMsg = data.detail.map((e: any) => `${e.loc?.[e.loc?.length - 1] ?? "Field"}: ${e.msg}`).join(", ");
+        } else if (typeof data.detail === "object") {
+          errMsg = JSON.stringify(data.detail);
+        }
+        throw new Error(errMsg);
       }
 
       setAdminMessage(`Product ${product.is_active ? "hidden" : "published"}.`);
