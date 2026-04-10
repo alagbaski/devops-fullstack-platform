@@ -3,9 +3,10 @@ from contextlib import closing
 from db import get_conn
 from models.feedback import Feedback
 from schemas.feedback import FeedbackCreate
+from services.background_jobs import queue_feedback_notification
 
 
-def create_feedback(user_id: int, payload: FeedbackCreate) -> dict:
+def create_feedback(user: dict, payload: FeedbackCreate) -> dict:
     with closing(get_conn()) as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -14,12 +15,14 @@ def create_feedback(user_id: int, payload: FeedbackCreate) -> dict:
                 VALUES (%s, %s)
                 RETURNING id, user_id, message, created_at;
                 """,
-                (user_id, payload.message.strip()),
+                (user["id"], payload.message.strip()),
             )
             row = cur.fetchone()
         conn.commit()
 
-    return Feedback.from_db_row(row).to_response()
+    feedback = Feedback.from_db_row(row).to_response()
+    queue_feedback_notification(user, feedback)
+    return feedback
 
 
 def list_feedback() -> list[dict]:

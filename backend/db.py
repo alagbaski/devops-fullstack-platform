@@ -22,6 +22,49 @@ from config import (
 )
 from security.passwords import hash_password
 
+DEFAULT_PRODUCT_CATALOG = (
+    {
+        "name": "Platform Launch Kit",
+        "slug": "platform-launch-kit",
+        "description": "A premium delivery bundle with deployment checklists, rollout templates, and polished handoff assets for engineering teams.",
+        "price": "149.00",
+        "currency": "USD",
+        "inventory_count": 14,
+        "image_url": "",
+        "is_active": True,
+    },
+    {
+        "name": "Observability Command Center",
+        "slug": "observability-command-center",
+        "description": "Dashboards, alert playbooks, and incident-ready monitors packaged for teams that want faster signal from day one.",
+        "price": "89.00",
+        "currency": "USD",
+        "inventory_count": 20,
+        "image_url": "",
+        "is_active": True,
+    },
+    {
+        "name": "Developer Portal Blueprint",
+        "slug": "developer-portal-blueprint",
+        "description": "A storefront-grade internal developer portal starter with onboarding flows, service inventory patterns, and team docs structure.",
+        "price": "129.00",
+        "currency": "USD",
+        "inventory_count": 9,
+        "image_url": "",
+        "is_active": True,
+    },
+    {
+        "name": "Support Workflow Studio",
+        "slug": "support-workflow-studio",
+        "description": "Customer support playbooks, queue rules, and feedback-routing patterns designed for technical products with real operators behind them.",
+        "price": "64.00",
+        "currency": "USD",
+        "inventory_count": 18,
+        "image_url": "",
+        "is_active": True,
+    },
+)
+
 
 def normalize_username(value: str) -> str:
     """Removes non-alphanumeric characters and lowercases the username."""
@@ -86,6 +129,47 @@ def get_conn():
             time.sleep(3)
 
     raise Exception("Database not reachable after retries")
+
+
+def seed_default_products(cur) -> None:
+    """
+    Insert a demo storefront catalog when the product table is empty.
+
+    This keeps fresh local or cloud deployments visually useful without
+    affecting environments that already have real catalog data.
+    """
+    cur.execute("SELECT COUNT(*) FROM products;")
+    product_count = cur.fetchone()[0]
+
+    if product_count > 0:
+        return
+
+    for product in DEFAULT_PRODUCT_CATALOG:
+        cur.execute(
+            """
+            INSERT INTO products (
+                name,
+                slug,
+                description,
+                price,
+                currency,
+                inventory_count,
+                image_url,
+                is_active
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            """,
+            (
+                product["name"],
+                product["slug"],
+                product["description"],
+                product["price"],
+                product["currency"],
+                product["inventory_count"],
+                product["image_url"],
+                product["is_active"],
+            ),
+        )
 
 
 def initialize_database() -> None:
@@ -159,6 +243,7 @@ def initialize_database() -> None:
                 CREATE INDEX IF NOT EXISTS idx_products_slug
                 ON products (slug);
                 """)
+            seed_default_products(cur)
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS feedback (
                     id SERIAL PRIMARY KEY,
@@ -201,7 +286,20 @@ def initialize_database() -> None:
                         cur, admin_username, exclude_user_id=admin_id
                     )
                     cur.execute(
-                        "UPDATE users SET username = %s WHERE id = %s;",
-                        (admin_username, admin_id),
+                        """
+                        UPDATE users
+                        SET email = %s,
+                            username = %s,
+                            password_hash = %s,
+                            role = %s
+                        WHERE id = %s;
+                        """,
+                        (
+                            ADMIN_EMAIL.lower(),
+                            admin_username,
+                            hash_password(ADMIN_PASSWORD),
+                            "admin",
+                            admin_id,
+                        ),
                     )
         conn.commit()

@@ -82,6 +82,86 @@
     @apply items-start;
   }
 
+  .storefront-hero-grid {
+    @apply mx-auto mb-6 grid w-full max-w-6xl gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)];
+  }
+
+  .storefront-hero-card,
+  .storefront-collection {
+    @apply overflow-hidden p-7;
+  }
+
+  .storefront-hero-card {
+    @apply grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.2),transparent_40%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(247,250,255,0.94))] xl:grid-cols-[minmax(0,1.15fr)_minmax(220px,0.85fr)];
+  }
+
+  .storefront-hero-card__copy h2,
+  .storefront-collection__header h2 {
+    @apply m-0 font-display text-[2rem] leading-[1.02] tracking-[-0.04em] text-slate-900;
+  }
+
+  .storefront-hero-card__copy p,
+  .storefront-collection__header p,
+  .storefront-collection__grid p,
+  .storefront-checkout-banner p,
+  .product-card-insight small {
+    @apply m-0 text-slate-600;
+  }
+
+  .storefront-hero-card__copy {
+    @apply grid gap-3;
+  }
+
+  .storefront-hero-card__meta {
+    @apply grid gap-3;
+  }
+
+  .storefront-hero-card__meta div {
+    @apply rounded-[1.3rem] border border-white/70 bg-white/75 p-4 shadow-[0_20px_40px_rgba(148,163,184,0.14)];
+  }
+
+  .storefront-hero-card__meta span,
+  .storefront-collection__grid span,
+  .product-card-insight span {
+    @apply text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500;
+  }
+
+  .storefront-hero-card__meta strong {
+    @apply mt-2 block text-lg text-slate-900;
+  }
+
+  .storefront-collection {
+    @apply bg-[linear-gradient(160deg,rgba(15,23,42,0.94),rgba(30,41,59,0.88))] text-white;
+  }
+
+  .storefront-collection .section-label {
+    @apply text-blue-200;
+  }
+
+  .storefront-collection__header {
+    @apply grid gap-3;
+  }
+
+  .storefront-collection__header h2 {
+    @apply text-white;
+  }
+
+  .storefront-collection__header p {
+    @apply text-slate-300;
+  }
+
+  .storefront-collection__grid {
+    @apply mt-6 grid gap-3;
+  }
+
+  .storefront-collection__grid div {
+    @apply rounded-[1.25rem] border border-white/10 bg-white/5 p-4;
+  }
+
+  .storefront-collection__grid p {
+    @apply mt-2 text-slate-300;
+  }
+
   .panel-products,
   .panel-cart,
   .panel-admin,
@@ -123,7 +203,7 @@
   }
 
   .product-card {
-    @apply rounded-[1.4rem] border border-slate-200 bg-white/90 p-5 shadow-sm;
+    @apply rounded-[1.55rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.95))] p-5 shadow-[0_20px_45px_rgba(148,163,184,0.14)];
   }
 
   .product-media {
@@ -148,6 +228,10 @@
 
   .product-card p {
     @apply m-0 text-slate-500;
+  }
+
+  .product-card-insight {
+    @apply mt-4 grid gap-1 rounded-[1.1rem] border border-slate-200/80 bg-slate-50/80 px-4 py-3;
   }
 
   .product-card-footer {
@@ -181,6 +265,14 @@
 
   .cart-summary {
     @apply mt-5 grid gap-3 rounded-[1.25rem] bg-slate-950 px-5 py-4 text-slate-50;
+  }
+
+  .storefront-checkout-banner {
+    @apply mb-5 flex flex-col gap-4 rounded-[1.35rem] border border-sky-200/80 bg-[linear-gradient(135deg,rgba(219,234,254,0.78),rgba(255,255,255,0.88))] p-5 shadow-[0_14px_35px_rgba(96,165,250,0.14)] md:flex-row md:items-center md:justify-between;
+  }
+
+  .storefront-checkout-banner strong {
+    @apply block text-base text-slate-900;
   }
 
   .cart-summary div {
@@ -246,6 +338,30 @@
 
   .service-list a {
     @apply grid gap-1 rounded-[1.1rem] border border-slate-200 bg-slate-50 px-4 py-3;
+  }
+
+  .app-footer {
+    @apply mx-auto mt-10 w-full max-w-6xl px-2 pb-4 pt-2 text-sm text-slate-500;
+  }
+
+  .app-footer__inner {
+    @apply flex flex-col gap-3 border-t border-slate-300/70 pt-5 md:flex-row md:items-center md:justify-between;
+  }
+
+  .app-footer__brand {
+    @apply flex items-center gap-3 text-slate-500;
+  }
+
+  .app-footer__mark {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-full border border-blue-200/80 bg-gradient-to-br from-white/80 via-blue-50/50 to-indigo-50/30 text-[0.65rem] font-bold uppercase tracking-[0.16em] bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm;
+  }
+
+  .app-footer__nav {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.88rem];
+  }
+
+  .app-footer__nav a {
+    @apply text-slate-500 transition hover:text-slate-900;
   }
 
   .admin-product-list {

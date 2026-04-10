@@ -2,13 +2,22 @@
 
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env"
+  set +a
+fi
+
 BASE_URL="${BASE_URL:-http://localhost:80}"
 EMAIL="${SMOKE_TEST_EMAIL:-phase1-smoke@example.com}"
 USERNAME="${SMOKE_TEST_USERNAME:-phase1-smoke-user}"
 PASSWORD="${SMOKE_TEST_PASSWORD:-phase1-smoke-pass}"
 ITEM_NAME="${SMOKE_TEST_ITEM:-phase1-smoke-item}"
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
-ADMIN_PASSWORD="${ADMIN_PASSWORD:-change-me-too}"
+ADMIN_EMAIL="${ADMIN_EMAIL:?ADMIN_EMAIL must be set in .env or the environment}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set in .env or the environment}"
 PRODUCT_SLUG="${SMOKE_TEST_PRODUCT_SLUG:-phase-smoke-product-$(date +%s)}"
 
 TMP_DIR="$(mktemp -d)"

@@ -2,8 +2,9 @@
  * Authentication API Utilities
  *
  * This file centralizes all network calls related to authentication.
- * It handles the 'fetch' logic, error formatting for FastAPI's
- * validation errors, and local storage persistence for JWT tokens.
+ * It handles the 'fetch' logic and error formatting for FastAPI's
+ * validation errors. Token persistence is intentionally owned by the
+ * calling flow so shopper and admin sessions stay isolated.
  */
 
 const API_URL = "/api/v1/auth";
@@ -100,14 +101,11 @@ export async function signupUser(payload: SignupPayload): Promise<any> {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
-  // Perform login and automatically save the resulting token to localStorage.
   const response = await fetch(`${API_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
-  const data = await parseResponse<AuthResponse>(response);
-  window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.access_token);
-  return data;
+  return parseResponse<AuthResponse>(response);
 }

@@ -57,7 +57,7 @@ describe("auth api", () => {
       body: JSON.stringify(payload),
     });
     expect(data.access_token).toBe("token-123");
-    expect(window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)).toBe("token-123");
+    expect(window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)).toBeNull();
   });
 
   it("surfaces backend auth errors", async () => {

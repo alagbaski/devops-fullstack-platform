@@ -41,11 +41,15 @@ graph TB
 | nginx | Proxy | 80 |
 | prometheus/grafana | Monitoring | 9090/3001 |
 
-## 🚀 Local Development (5s Setup)
+## 🚀 Local Development
 ```bash
 cp .env.example .env
+bash ./scripts/validate-env.sh
 docker compose up -d --build
 ```
+- `.env.example` is a reference file only. After copying it, replace every placeholder with real local values in `.env` before starting the stack.
+- `bash ./scripts/validate-env.sh` fails fast when required values are missing or still left as `${VAR}` placeholders.
+- For cloud or CI deployments, provide the same variables through the platform's secret/env management instead of committing them to Git.
 - `localhost` – Full app
 - `localhost:8000/docs` – Swagger API
 - `localhost:3001` – Grafana
