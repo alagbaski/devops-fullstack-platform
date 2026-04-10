@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useEffect, useMemo, useState, ReactNode, FormEvent, ChangeEvent } from "react";
-import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import { AUTH_TOKEN_STORAGE_KEY, loginUser, AuthResponse } from "./api/auth";
+import { AUTH_TOKEN_STORAGE_KEY, loginUser } from "./api/auth";
 import AuthButton from "./components/AuthButton";
 import AuthCard from "./components/AuthCard";
 import AuthField from "./components/AuthField";
@@ -53,7 +53,8 @@ const API_URL = "/api";
 const CART_STORAGE_KEY = "devops-platform-cart";
 const ADMIN_TOKEN_STORAGE_KEY = "devops-platform-admin-token";
 
-const supportEmail = "mailto:support@example.com";
+const supportEmailAddress = import.meta.env.VITE_SUPPORT_EMAIL || "support@example.com";
+const supportEmail = `mailto:${supportEmailAddress}`;
 
 // Default state for the product creation form
 const initialAdminForm: Omit<Product, "id"> = {
@@ -118,6 +119,29 @@ function getTokenEmail(token: string | null): string {
   return payload?.email || "";
 }
 
+function isTokenExpired(token: string | null): boolean {
+  const payload = decodeTokenPayload(token);
+  const exp = payload?.exp;
+  if (!exp || typeof exp !== "number") {
+    return true;
+  }
+
+  return exp * 1000 <= Date.now();
+}
+
+function isUserSessionToken(token: string | null): boolean {
+  if (!token) {
+    return false;
+  }
+
+  const payload = decodeTokenPayload(token);
+  return Boolean(payload) && payload?.role !== "admin" && !isTokenExpired(token);
+}
+
+function isAdminSessionToken(token: string | null): boolean {
+  return Boolean(token) && hasRole(token, "admin") && !isTokenExpired(token);
+}
+
 interface AppHeaderProps {
   title: string;
   description: string;
@@ -136,6 +160,32 @@ function AppHeader({ title, description, actions }: AppHeaderProps) {
         {actions ? <div className="hero-actions">{actions}</div> : null}
       </div>
     </section>
+  );
+}
+
+function AppFooter() {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer className="app-footer">
+      <div className="app-footer__inner">
+        <div className="app-footer__brand">
+          <span className="app-footer__mark">OD</span>
+          <span>&copy; {currentYear} OPSDEV, Inc.</span>
+        </div>
+
+        <nav aria-label="Footer" className="app-footer__nav">
+          <Link to="/">Home</Link>
+          <Link to="/shop">Shop</Link>
+          <Link to="/support">Support</Link>
+          <Link to="/admin">Admin</Link>
+          <a href={supportEmail}>Contact</a>
+          <a href={supportEmail}>Privacy</a>
+          <a href={supportEmail}>Terms</a>
+          <a href={supportEmail}>Security</a>
+        </nav>
+      </div>
+    </footer>
   );
 }
 
@@ -184,7 +234,7 @@ function WorkspaceSidebar({
         type="button"
         aria-expanded={isOpen}
         aria-label="Toggle workspace menu"
-        className={`fixed top-5 z-[70] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-slate-950 text-white shadow-[0_16px_40px_rgba(15,23,42,0.28)] transition duration-300 hover:-translate-y-0.5 hover:bg-slate-900 lg:top-6 ${isOpen ? "left-[15.6rem]" : "left-5 lg:left-6"}`}
+        className={`fixed top-5 z-[70] inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/50 bg-white/65 text-slate-800 shadow-[0_18px_45px_rgba(59,130,246,0.14)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/80 lg:top-6 ${isOpen ? "left-[15.95rem]" : "left-5 lg:left-6"}`}
         onClick={onToggle}
       >
         <span className="grid gap-1.5">
@@ -195,32 +245,32 @@ function WorkspaceSidebar({
       </button>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-[60] flex w-[18.5rem] flex-col overflow-hidden border-r border-white/10 bg-slate-950 text-slate-100 shadow-[0_24px_80px_rgba(15,23,42,0.35)] transition duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-[60] flex w-[19rem] flex-col overflow-hidden border-r border-white/50 bg-[linear-gradient(180deg,rgba(248,251,255,0.94),rgba(235,243,255,0.92))] text-slate-800 shadow-[0_26px_90px_rgba(59,130,246,0.16)] backdrop-blur-2xl transition duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center gap-4 border-b border-white/10 px-5 pb-5 pt-20">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 text-base font-bold text-white shadow-lg">
+        <div className="flex items-center gap-4 border-b border-slate-200/70 px-5 pb-5 pt-20">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-500 to-sky-400 text-base font-bold text-white shadow-[0_14px_30px_rgba(59,130,246,0.28)]">
             OD
           </div>
           <div className={`min-w-0 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-            <div className="text-xs font-bold uppercase tracking-[0.22em] text-blue-200">{badge}</div>
-            <div className="mt-1 text-lg font-semibold text-white">{title}</div>
+            <div className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">{badge}</div>
+            <div className="mt-1 text-lg font-semibold text-slate-900">{title}</div>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-5">
           <div className={`grid gap-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-              <p className="text-sm leading-6 text-slate-300">{description}</p>
+            <div className="rounded-[1.6rem] border border-white/70 bg-white/65 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+              <p className="text-sm leading-6 text-slate-600">{description}</p>
             </div>
 
             {stats.length ? (
               <div className="grid gap-3">
                 {stats.map((stat) => (
-                  <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  <div key={stat.label} className="rounded-2xl border border-white/70 bg-white/65 px-4 py-3 shadow-[0_14px_30px_rgba(148,163,184,0.12)]">
+                    <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
                       {stat.label}
                     </div>
-                    <div className="mt-2 text-xl font-semibold text-white">{stat.value}</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{stat.value}</div>
                   </div>
                 ))}
               </div>
@@ -232,7 +282,7 @@ function WorkspaceSidebar({
                   "href" in link ? (
                     <a
                       key={link.label}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition duration-200 hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white"
+                      className="rounded-2xl border border-white/70 bg-white/60 px-4 py-3 text-sm font-medium text-slate-700 transition duration-200 hover:border-blue-300 hover:bg-white/85 hover:text-slate-900"
                       href={link.href}
                       onClick={onClose}
                     >
@@ -241,7 +291,7 @@ function WorkspaceSidebar({
                   ) : (
                     <Link
                       key={link.label}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition duration-200 hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-white"
+                      className="rounded-2xl border border-white/70 bg-white/60 px-4 py-3 text-sm font-medium text-slate-700 transition duration-200 hover:border-blue-300 hover:bg-white/85 hover:text-slate-900"
                       to={link.to}
                       onClick={onClose}
                     >
@@ -254,15 +304,15 @@ function WorkspaceSidebar({
           </div>
         </div>
 
-        <div className={`grid gap-2 border-t border-white/10 px-4 py-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+        <div className={`grid gap-2 border-t border-slate-200/70 px-4 py-5 transition duration-300 ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
           {actions.map((action) => (
             <button
               key={action.label}
               type="button"
               className={`rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 ${
                 action.tone === "danger"
-                  ? "bg-white text-slate-950 hover:bg-slate-100"
-                  : "border border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
+                  ? "bg-slate-900 text-white hover:bg-slate-800"
+                  : "border border-white/70 bg-white/65 text-slate-800 hover:bg-white/90"
               }`}
               onClick={() => {
                 onClose();
@@ -386,7 +436,9 @@ interface AuthLandingProps {
 // Page Component: The first screen users see (Login/Signup toggle)
 function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }: AuthLandingProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [authMessage, setAuthMessage] = useState<string>("");
+  const checkoutIntent = location.state && (location.state as { reason?: string }).reason === "checkout";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-10 sm:px-6 lg:px-8">
@@ -473,12 +525,18 @@ function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }: AuthLan
                 </p>
               ) : null}
 
+              {checkoutIntent && !authMessage ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                  Sign in or create an account to continue to checkout.
+                </p>
+              ) : null}
+
               {authMode === "login" ? (
                 <LoginPage
                   onSuccess={(data) => {
                     setUserToken(data.access_token);
-                    setAuthMessage("Welcome back. Redirecting to the shop.");
-                    navigate("/shop", { replace: true });
+                    setAuthMessage("Welcome back. Redirecting to the storefront.");
+                    navigate("/", { replace: true });
                   }}
                   onSwitch={() => {
                     setAuthMessage("");
@@ -498,7 +556,7 @@ function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }: AuthLan
                 />
               )}
 
-              {userToken ? (
+              {isUserSessionToken(userToken) ? (
                 <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
                   <Link
                     className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
@@ -521,17 +579,18 @@ function AuthLanding({ authMode, setAuthMode, userToken, setUserToken }: AuthLan
             </div>
           </AuthCard>
 
-          <div className="text-center text-sm text-gray-500 xl:text-left">
-            Need help?{" "}
-            <a
-              className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
-              href={supportEmail}
+        <div className="text-center text-sm text-gray-500 xl:text-left">
+          Need help?{" "}
+          <a
+            className="font-medium text-gray-900 transition duration-200 hover:text-blue-600"
+            href={supportEmail}
             >
               Contact support
             </a>
           </div>
         </div>
       </section>
+      <AppFooter />
     </main>
   );
 }
@@ -543,10 +602,13 @@ interface ShopPageProps {
   productError: string;
   cartCount: number;
   cartSubtotal: number;
+  hasUserSession: boolean;
   onRefresh: () => void;
   onAddToCart: (product: Product) => void;
   onUpdateCartQuantity: (productId: number, nextQuantity: number) => void;
   onRemoveFromCart: (productId: number) => void;
+  onStartCheckout: () => void;
+  onOpenAccount: () => void;
   onLogout: () => void;
 }
 
@@ -558,35 +620,41 @@ function ShopPage({
   productError,
   cartCount,
   cartSubtotal,
+  hasUserSession,
   onRefresh,
   onAddToCart,
   onUpdateCartQuantity,
   onRemoveFromCart,
+  onStartCheckout,
+  onOpenAccount,
   onLogout,
 }: ShopPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const featuredProducts = products.slice(0, 3);
 
   return (
     <>
       <WorkspaceSidebar
         badge="Storefront"
         title="OPSDEV Shop"
-        description="Move through your signed-in workspace with a proper app menu instead of a floating utility drawer."
+        description="Browse the public storefront first, save items locally, and move into account-gated flows only when you are ready to check out."
         stats={[
           { label: "Products", value: isProductsLoading ? "..." : products.length },
           { label: "Cart Items", value: cartCount },
           { label: "Subtotal", value: `USD ${cartSubtotal.toFixed(2)}` },
         ]}
         links={[
-          { label: "Account home", to: "/" },
+          { label: "Storefront home", to: "/" },
           { label: "Catalog", href: "#shop-catalog" },
           { label: "Cart", href: "#shop-cart" },
-          { label: "Support", to: "/support" },
+          { label: hasUserSession ? "Support" : "Account access", to: hasUserSession ? "/support" : "/account" },
           { label: "Admin login", to: "/admin" },
         ]}
         actions={[
           { label: isProductsLoading ? "Refreshing..." : "Refresh catalog", onClick: onRefresh },
-          { label: "Log out", onClick: onLogout, tone: "danger" },
+          hasUserSession
+            ? { label: "Log out", onClick: onLogout, tone: "danger" }
+            : { label: "Sign in", onClick: onOpenAccount },
         ]}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((current) => !current)}
@@ -595,9 +663,68 @@ function ShopPage({
 
       <main className={`app-shell px-4 pb-8 pt-24 transition-all duration-300 sm:px-6 lg:pr-8 ${isSidebarOpen ? "lg:pl-[20.5rem]" : "lg:pl-24"}`}>
       <AppHeader
-        title="Browse the protected storefront."
-        description="Signed-in users can browse active products and keep a simple cart in local storage."
+        title="Build your developer stack like a product team."
+        description="OPSDEV is now a public storefront first: explore tools, save a cart, and only sign in when you are ready to continue to checkout or support workflows."
+        actions={
+          <>
+            <button type="button" className="secondary-button" onClick={onRefresh} disabled={isProductsLoading}>
+              {isProductsLoading ? "Refreshing..." : "Explore catalog"}
+            </button>
+            {hasUserSession ? (
+              <button type="button" className="secondary-button" onClick={onLogout}>
+                Log out
+              </button>
+            ) : (
+              <button type="button" className="secondary-button" onClick={onOpenAccount}>
+                Sign in for checkout
+              </button>
+            )}
+          </>
+        }
       />
+
+      <section className="storefront-hero-grid">
+        <article className="storefront-hero-card panel">
+          <div className="storefront-hero-card__copy">
+            <p className="section-label">Featured workflow</p>
+            <h2>Ship-ready tooling curated for engineers who care about the details.</h2>
+            <p>
+              Blend infrastructure utilities, team kits, and operational assets into one cleaner purchasing experience.
+            </p>
+          </div>
+          <div className="storefront-hero-card__meta">
+            <div>
+              <span>Access model</span>
+              <strong>{hasUserSession ? "Signed in shopper" : "Guest browsing enabled"}</strong>
+            </div>
+            <div>
+              <span>Checkout</span>
+              <strong>{hasUserSession ? "Ready" : "Prompts for account"}</strong>
+            </div>
+          </div>
+        </article>
+
+        <article className="storefront-collection panel">
+          <div className="storefront-collection__header">
+            <p className="section-label">Collection pulse</p>
+            <h2>What this storefront is built to feel like.</h2>
+          </div>
+          <div className="storefront-collection__grid">
+            <div>
+              <span>Confident merchandising</span>
+              <p>Cleaner product cards, clearer stock states, and stronger visual rhythm.</p>
+            </div>
+            <div>
+              <span>Account only when needed</span>
+              <p>Guests can browse first, then authenticate when they want to complete the flow.</p>
+            </div>
+            <div>
+              <span>Developer-forward polish</span>
+              <p>A storefront with enough personality that other teams would want to borrow the patterns.</p>
+            </div>
+          </div>
+        </article>
+      </section>
 
       <section className="workspace-grid workspace-grid-store">
         <section id="shop-catalog" className="panel panel-products scroll-mt-24">
@@ -626,11 +753,11 @@ function ShopPage({
             </div>
           ) : products.length === 0 ? (
             <div className="empty-state">
-              <p>No products published yet.</p>
-              <small>An admin can create and publish products from the admin dashboard.</small>
+              <p>The storefront is waiting for the first product drop.</p>
+              <small>Publish products from the admin dashboard and this page will turn into the public shop experience.</small>
             </div>
           ) : (
-            <div className="product-grid">
+            <div className="product-grid storefront-product-grid">
               {products.map((product) => {
                 const cartItem = cart.find((item) => item.id === product.id);
                 const quantityInCart = cartItem?.quantity ?? 0;
@@ -648,6 +775,11 @@ function ShopPage({
 
                     <h3>{product.name}</h3>
                     <p>{product.description}</p>
+
+                    <div className="product-card-insight">
+                      <span>{product.slug}</span>
+                      <small>{product.is_active ? "Live in the storefront" : "Not published"}</small>
+                    </div>
 
                     <div className="product-card-footer">
                       <span className="product-price">
@@ -673,15 +805,29 @@ function ShopPage({
           <div className="panel-header">
             <div>
               <p className="section-label">Cart</p>
-              <h2>Saved items</h2>
+              <h2>{hasUserSession ? "Saved items" : "Guest cart"}</h2>
             </div>
             <p>{cartCount === 0 ? "No products selected yet." : `${cartCount} item${cartCount === 1 ? "" : "s"} in cart.`}</p>
+          </div>
+
+          <div className="storefront-checkout-banner">
+            <div>
+              <strong>{hasUserSession ? "Checkout path unlocked" : "Browse freely, sign in when you are ready."}</strong>
+              <p>
+                {hasUserSession
+                  ? "Your cart is ready for account-gated next steps."
+                  : "Guests can collect items first. We only ask for login when you continue to checkout or support flows."}
+              </p>
+            </div>
+            <button type="button" className="secondary-button" onClick={hasUserSession ? onStartCheckout : onOpenAccount}>
+              {hasUserSession ? "Continue to checkout" : "Sign in to checkout"}
+            </button>
           </div>
 
           {cart.length === 0 ? (
             <div className="empty-state">
               <p>Your cart is empty.</p>
-              <small>Add products from the shop to keep them in local storage.</small>
+              <small>Add products from the storefront to keep them saved locally while you browse.</small>
             </div>
           ) : (
             <>
@@ -735,6 +881,7 @@ function ShopPage({
           )}
         </section>
       </section>
+      <AppFooter />
       </main>
     </>
   );
@@ -779,7 +926,7 @@ function SupportPage({
         description="Send a message to the admin or dev team when you need help with the storefront, account access, or product issues."
         actions={
           <>
-            <Link className="secondary-button button-link" to="/shop">
+            <Link className="secondary-button button-link" to="/">
               Shop
             </Link>
             <button type="button" className="secondary-button" onClick={onLogout}>
@@ -865,12 +1012,13 @@ function SupportPage({
             <li>
               <a href={supportEmail}>
                 <strong>Support inbox</strong>
-                <small>{supportEmail.replace("mailto:", "")}</small>
+                <small>{supportEmailAddress}</small>
               </a>
             </li>
           </ul>
         </section>
       </section>
+      <AppFooter />
     </main>
   );
 }
@@ -1008,6 +1156,7 @@ function AdminLoginPage({
           />
         </div>
       </section>
+      <AppFooter />
     </main>
   );
 }
@@ -1320,6 +1469,7 @@ function AdminDashboardPage({
           )}
         </section>
       </section>
+      <AppFooter />
       </main>
     </>
   );
@@ -1335,8 +1485,8 @@ export default function App() {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [userToken, setUserToken] = useState<string | null>(() => readToken(AUTH_TOKEN_STORAGE_KEY));
   const [adminToken, setAdminToken] = useState<string | null>(() => readToken(ADMIN_TOKEN_STORAGE_KEY));
-  const [adminUsername, setAdminUsername] = useState<string>("admin");
-  const [adminPassword, setAdminPassword] = useState<string>("change-me-too");
+  const [adminUsername, setAdminUsername] = useState<string>("");
+  const [adminPassword, setAdminPassword] = useState<string>("");
   const [adminOverview, setAdminOverview] = useState<AdminOverview | null>(null);
   const [adminProducts, setAdminProducts] = useState<Product[]>([]);
   const [adminFeedback, setAdminFeedback] = useState<FeedbackEntry[]>([]);
@@ -1359,6 +1509,10 @@ export default function App() {
   const [contactSuccess, setContactSuccess] = useState<string>("");
   const [isContactSubmitting, setIsContactSubmitting] = useState<boolean>(false);
 
+  function openAccountForCheckout() {
+    navigate("/account", { replace: true, state: { reason: "checkout" } });
+  }
+
   // useMemo prevents expensive re-calculations of cart totals unless 'cart' changes
   const cartCount = useMemo(
     () => cart.reduce((total, item) => total + item.quantity, 0),
@@ -1372,8 +1526,15 @@ export default function App() {
   );
 
   // Session Checks: Convert tokens into booleans for UI logic
-  const hasUserSession = Boolean(userToken);
-  const hasAdminSession = Boolean(adminToken) && hasRole(adminToken, "admin");
+  const hasUserSession = isUserSessionToken(userToken);
+  const hasAdminSession = isAdminSessionToken(adminToken);
+
+  function resetAdminSession() {
+    setAdminToken("");
+    setAdminOverview(null);
+    setAdminProducts([]);
+    setAdminFeedback([]);
+  }
 
   // API Logic: Fetch the public product list
   async function fetchProducts() {
@@ -1468,7 +1629,9 @@ export default function App() {
 
       // Check for authentication failures
       if ([overviewResponse, productsResponse, feedbackResponse].some((response) => response.status === 401 || response.status === 403)) {
-        throw new Error("Admin session expired or does not have access.");
+        const authError = new Error("Admin session expired or does not have access.");
+        (authError as Error & { code?: string }).code = "AUTH";
+        throw authError;
       }
 
       if (!overviewResponse.ok || !productsResponse.ok || !feedbackResponse.ok) {
@@ -1486,11 +1649,11 @@ export default function App() {
       setAdminFeedback(Array.isArray(feedbackData) ? feedbackData : []);
     } catch (err: any) {
       setAdminError(err.message || "Failed to load admin dashboard.");
-      setAdminToken("");
-      setAdminOverview(null);
-      setAdminProducts([]);
-      setAdminFeedback([]);
-      navigate("/admin", { replace: true });
+
+      if (err?.code === "AUTH") {
+        resetAdminSession();
+        navigate("/admin", { replace: true });
+      }
     } finally {
       setIsAdminLoading(false);
     }
@@ -1511,14 +1674,10 @@ export default function App() {
 
       setAdminToken(data.access_token);
       setAdminMessage("Admin session ready.");
-      await fetchAdminData(data.access_token);
       navigate("/admin/dashboard", { replace: true });
     } catch (err: any) {
       setAdminError(err.message || "Failed to sign in.");
-      setAdminToken("");
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-      }
+      resetAdminSession();
     } finally {
       setIsAdminSubmitting(false);
     }
@@ -1530,12 +1689,18 @@ export default function App() {
     navigate("/", { replace: true });
   }
 
+  function handleCheckoutEntry() {
+    if (!hasUserSession) {
+      openAccountForCheckout();
+      return;
+    }
+
+    navigate("/support", { replace: true });
+  }
+
   // Logout Logic: Reset all admin state
   function handleAdminLogout() {
-    setAdminToken("");
-    setAdminOverview(null);
-    setAdminProducts([]);
-    setAdminFeedback([]);
+    resetAdminSession();
     setAdminMessage("Admin session cleared.");
     setAdminError("");
     navigate("/admin", { replace: true });
@@ -1793,6 +1958,19 @@ export default function App() {
     }));
   }, [userToken]);
 
+  // Effect: Drop stale or cross-role tokens from local state on load.
+  useEffect(() => {
+    if (userToken && !isUserSessionToken(userToken)) {
+      setUserToken("");
+    }
+  }, [userToken]);
+
+  useEffect(() => {
+    if (adminToken && !isAdminSessionToken(adminToken)) {
+      resetAdminSession();
+    }
+  }, [adminToken]);
+
   // Effect: Sync adminToken state with localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1843,18 +2021,32 @@ export default function App() {
     }
   }, [adminToken, hasAdminSession]);
 
-  // Effect: Auto-logout admin if the token expires or is invalid
-  useEffect(() => {
-    if (adminToken && !hasAdminSession) {
-      setAdminToken("");
-    }
-  }, [adminToken, hasAdminSession]);
-
   // Routing Configuration
   return (
     <Routes>
       <Route
         path="/"
+        element={
+          <ShopPage
+            products={products}
+            cart={cart}
+            isProductsLoading={isProductsLoading}
+            productError={productError}
+            cartCount={cartCount}
+            cartSubtotal={cartSubtotal}
+            hasUserSession={hasUserSession}
+            onRefresh={() => fetchProducts()}
+            onAddToCart={addToCart}
+            onUpdateCartQuantity={updateCartQuantity}
+            onRemoveFromCart={removeFromCart}
+            onStartCheckout={handleCheckoutEntry}
+            onOpenAccount={openAccountForCheckout}
+            onLogout={handleUserLogout}
+          />
+        }
+      />
+      <Route
+        path="/account"
         element={
           <AuthLanding
             authMode={authMode}
@@ -1867,27 +2059,13 @@ export default function App() {
       <Route
         path="/shop"
         element={
-          <ProtectedRoute isAllowed={hasUserSession} redirectTo="/">
-            <ShopPage
-              products={products}
-              cart={cart}
-              isProductsLoading={isProductsLoading}
-              productError={productError}
-              cartCount={cartCount}
-              cartSubtotal={cartSubtotal}
-              onRefresh={() => fetchProducts()}
-              onAddToCart={addToCart}
-              onUpdateCartQuantity={updateCartQuantity}
-              onRemoveFromCart={removeFromCart}
-              onLogout={handleUserLogout}
-            />
-          </ProtectedRoute>
+          <Navigate to="/" replace />
         }
       />
       <Route
         path="/support"
         element={
-          <ProtectedRoute isAllowed={hasUserSession} redirectTo="/">
+          <ProtectedRoute isAllowed={hasUserSession} redirectTo="/account">
             <SupportPage
               feedbackText={feedbackText}
               feedbackError={feedbackError}

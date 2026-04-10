@@ -94,6 +94,7 @@ services:
       - /app/node_modules
     environment:
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
+      VITE_SUPPORT_EMAIL: ${SUPPORT_EMAIL}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     networks:

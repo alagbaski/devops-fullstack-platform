@@ -8,10 +8,25 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: devopsdb
+      POSTGRES_USER: devops
+      POSTGRES_PASSWORD: devops
+      RABBITMQ_DEFAULT_USER: devops
+      RABBITMQ_DEFAULT_PASS: devops
+      RABBITMQ_ERLANG_COOKIE: ci-rabbit-cookie
+      RABBITMQ_URL: amqp://devops:devops@rabbitmq:5672//
+      JWT_SECRET: ci-only-jwt-secret
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: Admin123
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Validate required runtime environment
+        run: bash ./scripts/validate-env.sh
 
       - name: Validate Compose file
         run: docker compose config
@@ -43,8 +58,6 @@ jobs:
       - name: Run application smoke test
         env:
           BASE_URL: http://localhost
-          ADMIN_EMAIL: admin@example.com
-          ADMIN_PASSWORD: change-me-too
         run: ./scripts/smoke-phase1.sh
 
       - name: Set up Python
