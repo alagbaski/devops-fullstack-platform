@@ -5,7 +5,7 @@ A Dockerized full-stack **production-grade e-commerce platform** built with **Re
 ## 🚀 Quick Demo
 | Home/Shop | Cart/Auth | Admin Dashboard | Grafana |
 |-----------|-----------|-----------------|---------|
-| ![Home](media/Screenshot%20from%202026-04-10%2016-37-08.png) | ![Cart](media/Screenshot%20from%202026-04-10%2016-37-43.png) | ![Admin](media/Screenshot%20from%202026-04-10%2016-37-28.png) | ![Grafana](media/Screenshot%20from%202026-04-10%2016-52-29.png) |
+| ![Home](image/Screenshot%20from%202026-04-10%2016-37-08.png) | ![Cart](image/Screenshot%20from%202026-04-10%2016-37-43.png) | ![Admin](image/Screenshot%20from%202026-04-10%2016-37-28.png) | ![Grafana](image/Screenshot%20from%202026-04-10%2016-52-29.png) |
 
 *(Add actual screenshots in /screenshots/ folder for GH README render)*
 
