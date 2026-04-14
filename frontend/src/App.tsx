@@ -783,19 +783,7 @@ function ShopPage({
             <p>{cartCount === 0 ? "No products selected yet." : `${cartCount} item${cartCount === 1 ? "" : "s"} in cart.`}</p>
           </div>
 
-          <div className="storefront-checkout-banner">
-            <div>
-              <strong>{hasUserSession ? "Checkout path unlocked" : "Browse freely, sign in when you are ready."}</strong>
-              <p>
-                {hasUserSession
-                  ? "Your cart is ready for account-gated next steps."
-                  : "Guests can collect items first. We only ask for login when you continue to checkout or support flows."}
-              </p>
-            </div>
-            <button type="button" className="secondary-button" onClick={hasUserSession ? onStartCheckout : onOpenAccount}>
-              Checkout
-            </button>
-          </div>
+
 
           {cart.length === 0 ? (
             <div className="empty-state">
@@ -849,6 +837,16 @@ function ShopPage({
                   <span>Subtotal</span>
                   <strong>USD {cartSubtotal.toFixed(2)}</strong>
                 </div>
+              </div>
+
+              <div className="mt-6">
+                <button 
+                  type="button" 
+                  className="secondary-button w-full py-4 text-lg" 
+                  onClick={hasUserSession ? onStartCheckout : onOpenAccount}
+                >
+                  Checkout
+                </button>
               </div>
             </>
           )}
@@ -1149,6 +1147,7 @@ interface AdminDashboardPageProps {
   onUploadProductImage: (file: File | null) => void;
   onToggleProductStatus: (product: Product) => void;
   onDeleteProduct: (product: Product) => void;
+  onDeleteFeedback: (feedbackId: number) => void;
   onLogout: () => void;
 }
 
@@ -1168,6 +1167,7 @@ function AdminDashboardPage({
   onUploadProductImage,
   onToggleProductStatus,
   onDeleteProduct,
+  onDeleteFeedback,
   onLogout,
 }: AdminDashboardPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -1394,10 +1394,19 @@ function AdminDashboardPage({
               ) : (
                 <ul className="admin-product-list !gap-3">
                   {adminFeedback.map((entry) => (
-                    <li key={entry.id} className="!p-4 !grid-cols-1 gap-2">
-                      <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-1">
+                    <li key={entry.id} className="!p-4 !grid-cols-1 gap-2 relative group items-start">
+                      <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-1 w-full relative pr-10">
                         <strong className="text-sm">User #{entry.user_id}</strong>
                         <span className="section-label !mb-0">{new Date(entry.created_at).toLocaleDateString()}</span>
+                        <button
+                          type="button"
+                          className="absolute right-0 top-0 bottom-0 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 px-2"
+                          onClick={() => onDeleteFeedback(entry.id)}
+                          disabled={isAdminSubmitting}
+                          title="Delete Feedback"
+                        >
+                          ✕
+                        </button>
                       </div>
                       <p className="text-slate-600 mt-1">{entry.message}</p>
                     </li>
@@ -1947,6 +1956,34 @@ export default function App() {
     }
   }
 
+  // Admin Logic: Permanent feedback deletion
+  async function handleDeleteFeedback(feedbackId: number) {
+    setIsAdminSubmitting(true);
+    setAdminError("");
+    setAdminMessage("");
+
+    try {
+      const response = await fetch(`${API_URL}/v1/feedback/${feedbackId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to delete feedback.");
+      }
+
+      setAdminMessage("Feedback deleted.");
+      await fetchAdminData();
+    } catch (err: any) {
+      setAdminError(err.message || "Failed to delete feedback.");
+    } finally {
+      setIsAdminSubmitting(false);
+    }
+  }
+
   // Effect: Initial product load on app mount
   useEffect(() => {
     fetchProducts().catch((err: any) => {
@@ -2145,6 +2182,7 @@ export default function App() {
               onUploadProductImage={handleUploadProductImage}
               onToggleProductStatus={toggleProductStatus}
               onDeleteProduct={handleDeleteProduct}
+              onDeleteFeedback={handleDeleteFeedback}
               onLogout={handleAdminLogout}
             />
           </ProtectedRoute>
