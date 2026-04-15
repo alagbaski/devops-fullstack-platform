@@ -4,9 +4,9 @@ services:
   db:
     image: ${POSTGRES_IMAGE:-postgres:14}
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-devopsdb}
+      POSTGRES_USER: ${POSTGRES_USER:-devops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devops}
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,8 +22,8 @@ services:
       HOME: ${RABBITMQ_HOME:-/tmp/rabbitmq}
       RABBITMQ_DATA_DIR: ${RABBITMQ_DATA_DIR:-/tmp/rabbitmq}
       RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-devops}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-devops}
     ports:
       - "${RABBITMQ_UI_PORT:-15672}:15672"
       - "${RABBITMQ_PORT:-5672}:5672"
@@ -52,14 +52,14 @@ services:
       DB_HOST: ${DB_HOST:-db}
       POSTGRES_DB: ${POSTGRES_DB:-devopsdb}
       POSTGRES_USER: ${POSTGRES_USER:-devops}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      RABBITMQ_URL: ${RABBITMQ_URL}
-      JWT_SECRET: ${JWT_SECRET}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devops}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_USERNAME: ${ADMIN_USERNAME}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@example.com}
       MEDIA_ROOT: ${MEDIA_ROOT:-/app/media}
     volumes:
@@ -77,7 +77,7 @@ services:
       backend:
         condition: service_started
     environment:
-      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://devops:devops@rabbitmq:5672//}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@example.com}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -94,7 +94,7 @@ services:
       - /app/node_modules
     environment:
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
-      VITE_SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+      VITE_SUPPORT_EMAIL: ${SUPPORT_EMAIL:-support@example.com}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     networks:

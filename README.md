@@ -45,9 +45,9 @@ cp .env.example .env
 bash ./scripts/validate-env.sh
 docker compose up -d --build
 ```
-- `.env.example` is a reference file only. After copying it, replace every placeholder with real local values in `.env` before starting the stack.
-- `bash ./scripts/validate-env.sh` fails fast when required values are missing or still left as `${VAR}` placeholders.
-- For cloud or CI deployments, provide the same variables through the platform's secret/env management instead of committing them to Git.
+- `.env.example` uses the `${VAR}` pattern for all configurations. This allows you to either set values in your `.env` file or pass them directly from your host shell.
+- **Robust Defaults**: The `docker-compose.yml` uses `${VAR:-fallback}` syntax. If a variable is not set in `.env` (or left as a placeholder), the system automatically uses safe defaults (e.g., `BACKEND_PORT=8000`).
+- `bash ./scripts/validate-env.sh` verifies that strictly required variables (like `JWT_SECRET` and passwords) have been properly configured before the services start.
 - `localhost` – Full app
 - `localhost:8000/docs` – Swagger API
 - `localhost:3001` – Grafana
